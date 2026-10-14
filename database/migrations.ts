@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 export const DATABASE_NAME = 'cuidarme.db';
 
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 
 export async function migrateDbIfNeeded(db: SQLiteDatabase) {
   const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
@@ -42,6 +42,20 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       CREATE INDEX idx_paciente_nome ON paciente (nome);
     `);
   }
-
+   if (currentVersion < 2) {
+    await db.execAsync(`
+      CREATE TABLE agendamento (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        paciente_id INTEGER NOT NULL,
+        data TEXT NOT NULL,
+        localidade TEXT NOT NULL,
+        status TEXT NOT NULL CHECK (status IN ('PENDENTE' | 'CONFIRMADO' | 'CANCELADO' | 'REALIZADO' | 'REMARCADO')),
+        criado_em TEXT NOT NULL,
+        FOREIGN KEY (paciente_id) REFERENCES paciente (id) ON DELETE CASCADE
+      );
+      CREATE INDEX idx_agendamento_paciente_id ON agendamento (paciente_id);
+      CREATE INDEX idx_agendamento_data ON agendamento (data);
+    `);
+   }
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
 }
