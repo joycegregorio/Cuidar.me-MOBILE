@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 export const DATABASE_NAME = 'cuidarme.db';
 
-const DATABASE_VERSION = 3;
+const DATABASE_VERSION = 4;
 
 const CRIAR_AGENDAMENTO = `
   CREATE TABLE agendamento (
@@ -57,6 +57,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       CREATE INDEX idx_paciente_nome ON paciente (nome);
     `);
   }
+
   if (currentVersion < 2) {
     await db.execAsync(CRIAR_AGENDAMENTO);
   }
@@ -68,6 +69,19 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     if (tabela?.sql.includes("' | '")) {
       await db.execAsync(`DROP TABLE agendamento; ${CRIAR_AGENDAMENTO}`);
     }
+  }
+
+  if (currentVersion < 4) {
+    await db.execAsync(`
+      CREATE TABLE psicologo (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        senha_hash TEXT NOT NULL,
+        senha_salt TEXT NOT NULL,
+        criado_em TEXT NOT NULL
+      );
+    `);
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
