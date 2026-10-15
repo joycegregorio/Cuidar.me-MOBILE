@@ -1,34 +1,63 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import Header from '../../components/ui/header';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+const aba = (
+  title: string,
+  icon: IconName,
+  iconFocado: IconName
+) => ({
+  title,
+  tabBarIcon: ({
+    color,
+    size,
+    focused,
+  }: {
+    color: string;
+    size: number;
+    focused: boolean;
+  }) => (
+    <Ionicons
+      name={focused ? iconFocado : icon}
+      size={size}
+      color={color}
+    />
+  ),
+});
 
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        header: () => <Header />,
+        tabBarActiveTintColor: '#5b00d2',
+        tabBarInactiveTintColor: '#9a8bb5',
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+        },
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          borderTopWidth: 0,
+          elevation: 8,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
+        options={aba('Início', 'home-outline', 'home')}
       />
+
       <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
+        name="paciente/pacientePage"
+        options={aba('Pacientes', 'people-outline', 'people')}
+      />
+
+      <Tabs.Screen
+        name="agendamento/agendamentoPage"
+        options={aba('Agenda', 'calendar-outline', 'calendar')}
       />
     </Tabs>
   );
