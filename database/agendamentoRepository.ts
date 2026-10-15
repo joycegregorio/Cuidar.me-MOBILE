@@ -80,3 +80,10 @@ export async function deletarAgendamento(db: SQLiteDatabase, agendamentoId: numb
         [agendamentoId]
     );
 }
+
+export async function atualizarAgendamento(db: SQLiteDatabase, agendamentoId: number, dados: AgendamentoForm): Promise<void> {
+    await db.runAsync(
+        'UPDATE agendamento SET paciente_id = ?, data = ?, localidade = ?, status = ? WHERE id = ?',
+        [dados.pacienteId, dados.data, dados.localidade, dados.status, agendamentoId]
+    );
+}
