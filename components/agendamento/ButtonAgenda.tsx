@@ -1,5 +1,5 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export type AbaAgenda = 'novo' | 'consultas';
 
@@ -32,7 +32,7 @@ export default function ButtonAgenda({
             abaAtiva === 'novo' && styles.textoBotaoAtivo,
           ]}
         >
-          Novo
+          Novo Agendamento
         </Text>
       </Pressable>
 
