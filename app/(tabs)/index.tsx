@@ -1,8 +1,10 @@
-import { ScrollView, StyleSheet, View, Text} from 'react-native';
+import { listarAgendamentosDoDia } from '@/database/agendamentoRepository';
+import { AgendamentoComPaciente } from '@/types/agendamento';
 import { LinearGradient } from 'expo-linear-gradient';
-
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { useFocusEffect } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useCallback, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 type Psicologo = {
   id: number;
@@ -10,6 +12,21 @@ type Psicologo = {
 }
 
 export default function HomeScreen() {
+  const db = useSQLiteContext();
+  const [consultas, setConsultas] = useState<AgendamentoComPaciente[]>([]);
+  const [pagina, setPagina] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      listarAgendamentosDoDia(db).then((lista) => {
+        setConsultas(lista);
+        setPagina(0);
+      });
+    }, [db])
+  );
+
+  const totalPaginas = Math.ceil(consultas.length/3);
+  const daPagina = consultas.slice(pagina * 3, pagina * 3 + 3);
   return (
 
     <LinearGradient
@@ -21,22 +38,61 @@ export default function HomeScreen() {
 
       <ScrollView style={styles.conteudo}>
           <View style={styles.boasVindas}>
-            <Text type="title" style={styles.titulo}>
+            <Text style={styles.titulo}>
               Bem-vindo(a)!
             </Text>
-            <Text type="subtitle" style={styles.subtitulo}>
+            <Text style={styles.subtitulo}>
               Veja suas informações.
             </Text>
           </View>
 
         <View style={styles.cards}>
           <View style={styles.card}>
-            <ThemedText type="title" style={styles.cardTitle}>
+            <Text style={styles.cardTitle}>
               Pacientes
-            </ThemedText>
-            <ThemedText type="subtitle" style={styles.cardSubtitle}>
+            </Text>
+            <Text style={styles.cardSubtitle}>
               Gerencie seus pacientes
-            </ThemedText>
+            </Text>
+          </View>
+
+           <View style={styles.card}>
+            <Text style={styles.cardTitle}>
+              Consultas do dia
+            </Text>
+            {consultas.length === 0 && (
+              <Text style={styles.cardSubtitle}>
+                  Nenhuma consulta para hoje.
+              </Text>
+            )}
+            {daPagina.map((c) => (
+              <Text key={c.id} style={styles.item}>
+                {c.paciente.nome} {c.data.split('-').reverse().join('/')} {c.horario}
+              </Text>
+            ))}
+
+            {totalPaginas > 1 && (
+              <View style={styles.paginacao}>
+                <Pressable
+                  disabled={pagina === 0}
+                  onPress={() => setPagina(pagina - 1)}
+                  style={{ opacity: pagina === 0 ? 0.3 : 1 }}
+                >
+                  <Text style={styles.seta}>‹</Text>
+                </Pressable>
+
+                <Text style={styles.cardSubtitle}>
+                  {pagina + 1} de {totalPaginas}
+                </Text>
+                <Pressable
+                  disabled={pagina >= totalPaginas - 1}
+                  onPress={() => setPagina(pagina + 1)}
+                  style={{ opacity: pagina >= totalPaginas - 1 ? 0.3 : 1 }}
+                >
+                  <Text style={styles.seta}>›</Text>
+                </Pressable>
+              </View> 
+            )}
           </View>
         </View>
 
@@ -95,5 +151,21 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: '#5b00d2',
     textAlign: 'center',
-  }
+  },
+  item: {
+    fontSize: 16,
+    color: '#5b00d2',
+    marginBottom: 8,
+  },
+  paginacao: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 20,
+    marginTop: 8,
+  },
+  seta: {
+    fontSize: 28,
+    color: '#5b00d2',
+  },
 });

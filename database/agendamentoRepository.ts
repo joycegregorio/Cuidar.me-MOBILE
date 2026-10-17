@@ -6,6 +6,7 @@ interface AgendamentoRow {
     id: number;
     paciente_id: number;
     data: string;
+    horario: string;
     localidade: string;
     status: string;
     criado_em: string;
@@ -16,11 +17,19 @@ type AgendamentoRowWithPaciente = AgendamentoRow & {
     paciente_nome: string;
 };
 
+const hojeISO = () => {
+  const d = new Date();
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const dia = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mes}-${dia}`;
+};
+
 function toAgendamento (row: AgendamentoRow): Agendamento {
     return {
         id: row.id,
         pacienteId: row.paciente_id,
         data: row.data,
+        horario: row.horario,
         localidade: row.localidade,
         status: row.status as StatusAgendamento,
         criadoEm: row.criado_em,
@@ -39,8 +48,8 @@ function toAgendamentoComPaciente (row: AgendamentoRowWithPaciente): Agendamento
 
 export async function inserirAgendamento(db: SQLiteDatabase, dados: AgendamentoForm): Promise<number> {
     const result = await db.runAsync(
-        'INSERT INTO agendamento (paciente_id, data, localidade, status, criado_em) VALUES (?, ?, ?, ?, ?)',
-        [dados.pacienteId, dados.data, dados.localidade, dados.status, new Date().toISOString()]
+        'INSERT INTO agendamento (paciente_id, data, horario, localidade, status, criado_em) VALUES (?, ?, ?, ?, ?, ?)',
+        [dados.pacienteId, dados.data, dados.horario, dados.localidade, dados.status, new Date().toISOString()]
     );
     return result.lastInsertRowId;
 }
@@ -52,6 +61,18 @@ export async function listarAgendamentos(db: SQLiteDatabase): Promise<Agendament
          JOIN paciente p ON a.paciente_id = p.id
          ORDER BY a.data
         `);
+    return rows.map(toAgendamentoComPaciente);
+}
+
+export async function listarAgendamentosDoDia(db: SQLiteDatabase): Promise<AgendamentoComPaciente[]>{
+    const rows = await db.getAllAsync<AgendamentoRowWithPaciente>(
+        `SELECT a.*, p.nome AS paciente_nome
+        FROM agendamento a
+        JOIN paciente p ON a.paciente_id = p.id
+        WHERE a.data = ? AND a.status IN ('PENDENTE', 'CONFIRMADO', 'REMARCADO')
+        ORDER BY a.horario`,
+        [hojeISO()],
+    )
     return rows.map(toAgendamentoComPaciente);
 }
 
@@ -83,7 +104,7 @@ export async function deletarAgendamento(db: SQLiteDatabase, agendamentoId: numb
 
 export async function atualizarAgendamento(db: SQLiteDatabase, agendamentoId: number, dados: AgendamentoForm): Promise<void> {
     await db.runAsync(
-        'UPDATE agendamento SET paciente_id = ?, data = ?, localidade = ?, status = ? WHERE id = ?',
-        [dados.pacienteId, dados.data, dados.localidade, dados.status, agendamentoId]
+        'UPDATE agendamento SET paciente_id = ?, data = ?, horario = ?, localidade = ?, status = ? WHERE id = ?',
+        [dados.pacienteId, dados.data, dados.horario, dados.localidade, dados.status, agendamentoId]
     );
 }

@@ -8,6 +8,7 @@ export type StatusAgendamento =
 export interface AgendamentoForm {
   pacienteId: number;
   data: string;
+  horario: string;
   localidade: string;
   status: StatusAgendamento;
 }

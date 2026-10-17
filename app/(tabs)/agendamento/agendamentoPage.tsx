@@ -1,10 +1,11 @@
-import { Text, View } from 'react-native';
-import { useState } from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet } from 'react-native';
+import AgendamentoForm from '@/components/agendamento/agendamentoForm';
 import ButtonAgenda, {
-    type AbaAgenda, 
+  type AbaAgenda,
 } from '@/components/agendamento/ButtonAgenda';
+import ConsultasAgendadasCard from '@/components/agendamento/consultasAgendadasCard';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
+import { StyleSheet } from 'react-native';
 
 export default function Agendamentos() {
     const [abaAtiva, setAbaAtiva] = useState<AbaAgenda>('novo');
@@ -18,16 +19,8 @@ export default function Agendamentos() {
     >
         <ButtonAgenda abaAtiva={abaAtiva} onMudarAba={setAbaAtiva} />
 
-        {abaAtiva === 'novo' ? (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <Text>Agendamento de nova consulta</Text>
-            </View>
-        ) : null}
-        {abaAtiva === 'consultas' ? (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <Text>Consultas agendadas</Text>
-            </View>
-        ) : null}
+        {abaAtiva === 'novo' && <AgendamentoForm />}
+        {abaAtiva === 'consultas' && <ConsultasAgendadasCard />}
     </LinearGradient>
   );
 }
