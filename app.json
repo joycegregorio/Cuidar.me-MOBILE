@@ -44,7 +44,8 @@
       "expo-status-bar",
       "expo-web-browser",
       "expo-sqlite",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

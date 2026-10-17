@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 export const DATABASE_NAME = 'cuidarme.db';
 
-const DATABASE_VERSION = 4;
+const DATABASE_VERSION = 5;
 
 const CRIAR_AGENDAMENTO = `
   CREATE TABLE agendamento (
@@ -58,6 +58,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       CREATE INDEX idx_paciente_nome ON paciente (nome);
     `);
   }
+
   if (currentVersion < 2) {
     await db.execAsync(CRIAR_AGENDAMENTO);
   }
@@ -72,6 +73,19 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
   }
 
   if (currentVersion < 4) {
+    await db.execAsync(`
+      CREATE TABLE psicologo (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        senha_hash TEXT NOT NULL,
+        senha_salt TEXT NOT NULL,
+        criado_em TEXT NOT NULL
+      );
+    `);
+  }
+
+  if (currentVersion < 5) {
     const colunas = await db.getAllAsync<{ name: string }>(
       'PRAGMA table_info(agendamento)',
     );
@@ -79,7 +93,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
 
     if (!temHorario) {
       await db.execAsync(`ALTER TABLE agendamento ADD COLUMN horario TEXT NOT NULL DEFAULT ' ';
-        UPDATE agendamento 
+        UPDATE agendamento
         SET horario = substr(data, 12, 5), data = substr(data, 1, 10)
         WHERE data LIKE '%T%';
       `);
