@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Pressable,
   StyleSheet,
@@ -11,22 +12,40 @@ import {
   View
 } from 'react-native';
 
+import { useAuth } from '@/contexts/auth-context';
+import { AuthError } from '@/services/authService';
+import { type ErrosLogin, validarLogin } from '@/utils/validacaoPsicologo';
+
 export default function Login() {
+  const { entrar } = useAuth();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [erros, setErros] = useState<ErrosLogin>({});
+  const [entrando, setEntrando] = useState(false);
 
-  const handleLogin = () => {
-    if (!email.trim()) {
-      Alert.alert('Atenção', 'Informe seu e-mail.');
+  const handleLogin = async () => {
+    const novosErros = validarLogin({ email, senha });
+    setErros(novosErros);
+    if (Object.keys(novosErros).length > 0) {
+      Alert.alert('Atenção', 'Informe e-mail e senha.');
       return;
     }
 
-    if (!senha) {
-      Alert.alert('Atenção', 'Informe sua senha.');
-      return;
+    setEntrando(true);
+    try {
+      await entrar({ email, senha });
+      router.replace('/(tabs)');
+    } catch (error) {
+      if (error instanceof AuthError) {
+        setErros(error.erros as ErrosLogin);
+        Alert.alert('Atenção', error.message);
+      } else {
+        console.error('Erro ao entrar:', error);
+        Alert.alert('Erro', 'Não foi possível entrar. Tente novamente!');
+      }
+    } finally {
+      setEntrando(false);
     }
-
-    router.push('/(tabs)');
   };
 
   return (
@@ -44,36 +63,49 @@ export default function Login() {
                 </Text>
 
                 <Text style={styles.label}>E-mail</Text>
-                <View style={styles.inputBox}>
+                <View style={[styles.inputBox, erros.email ? styles.inputBoxErro : null]}>
                     <TextInput
                         style={styles.input}
                         placeholder="Digite seu email"
                         value={email}
-                        onChangeText={setEmail}
+                        onChangeText={(v) => {
+                            setEmail(v);
+                            setErros((e) => ({ ...e, email: undefined }));
+                        }}
                         keyboardType="email-address"
                         autoCapitalize="none"
                         autoCorrect={false}
                     />
                 </View>
+                {erros.email ? <Text style={styles.erro}>{erros.email}</Text> : null}
 
                 <Text style={styles.label}>Senha</Text>
-                <View style={styles.inputBox}>
+                <View style={[styles.inputBox, erros.senha ? styles.inputBoxErro : null]}>
                     <TextInput
                         style={styles.input}
                         placeholder="Digite sua senha"
                         value={senha}
-                        onChangeText={setSenha}
+                        onChangeText={(v) => {
+                            setSenha(v);
+                            setErros((e) => ({ ...e, senha: undefined }));
+                        }}
                         secureTextEntry
                         autoCapitalize="none"
                     />
                 </View>
+                {erros.senha ? <Text style={styles.erro}>{erros.senha}</Text> : null}
             </View>
 
             <Pressable
-                style={styles.botao}
+                style={[styles.botao, entrando && styles.botaoDesabilitado]}
                 onPress={handleLogin}
+                disabled={entrando}
             >
-                <Text style={styles.botaoTexto}>Entrar</Text>
+                {entrando ? (
+                    <ActivityIndicator color="#fff" />
+                ) : (
+                    <Text style={styles.botaoTexto}>Entrar</Text>
+                )}
             </Pressable>
 
             <Pressable
@@ -131,10 +163,22 @@ const styles = StyleSheet.create({
     minHeight: 44,
     minWidth: 250,
   },
+  inputBoxErro: {
+    borderColor: '#dc2626',
+  },
+  erro: {
+    color: '#dc2626',
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 10,
+  },
   input: {
     flex: 1,
     paddingVertical: 10,
     color: '#333333',
+  },
+  botaoDesabilitado: {
+    opacity: 0.6,
   },
   botao: {
     backgroundColor: '#a755f7',
