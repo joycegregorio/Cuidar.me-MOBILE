@@ -1,7 +1,7 @@
-import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '@/contexts/auth-context';
 
@@ -21,7 +21,7 @@ export default function Header() {
         onPress: async () => {
           try {
             await sair();
-            router.replace('/');
+            router.replace('/loginPage');
           } catch (error) {
             console.error('Erro ao sair:', error);
             Alert.alert('Erro', 'Não foi possível sair. Tente novamente!');
@@ -41,8 +41,8 @@ export default function Header() {
       />
 
       <View style={styles.acoes}>
-        <Pressable onPress={() => router.push('/perfil')} hitSlop={8} accessibilityLabel="Perfil">
-          <FontAwesome5 name="user-friends" size={20} color="#5b00d2" />
+        <Pressable onPress={() => router.push('/')} hitSlop={8} accessibilityLabel="Perfil">
+          <Ionicons name="people-outline" size={24} color="#5b00d2" />
         </Pressable>
 
         <Pressable onPress={handleLogout} hitSlop={8} accessibilityLabel="Sair">
@@ -67,9 +67,9 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 4,
   },
-  logo: { 
-    width: 120, 
+  logo: {
+    width: 120,
     height: 40,
-},
+  },
   acoes: { flexDirection: 'row', alignItems: 'center', gap: 20 },
 });

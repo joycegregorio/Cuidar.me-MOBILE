@@ -227,7 +227,7 @@ export default function AgendamentoForm({ onSalvo }: Props) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    borderRadius: 20,
     padding: 16,
     marginTop: 16,
   },
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   botao: {
     backgroundColor: '#a755f7',
     padding: 14,
-    borderRadius: 8,
+    borderRadius: 100,
     alignItems: 'center',
   },
   botaoDesabilitado: {
