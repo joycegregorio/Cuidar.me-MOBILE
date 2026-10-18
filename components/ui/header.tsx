@@ -1,14 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { useAuth } from '@/contexts/auth-context';
 
 const logonome = require('../../assets/images/logonome.png');
 
 export default function Header() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { sair } = useAuth();
 
   const handleLogout = () => {
     Alert.alert('Sair', 'Deseja realmente sair?', [
@@ -17,8 +19,13 @@ export default function Header() {
         text: 'Sair',
         style: 'destructive',
         onPress: async () => {
-          await AsyncStorage.removeItem('psicologo');
-          router.replace('/loginPage');
+          try {
+            await sair();
+            router.replace('/loginPage');
+          } catch (error) {
+            console.error('Erro ao sair:', error);
+            Alert.alert('Erro', 'Não foi possível sair. Tente novamente!');
+          }
         },
       },
     ]);
@@ -60,9 +67,9 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 4,
   },
-  logo: { 
-    width: 120, 
+  logo: {
+    width: 120,
     height: 40,
-},
+  },
   acoes: { flexDirection: 'row', alignItems: 'center', gap: 20 },
 });
