@@ -1,5 +1,6 @@
-import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
+import { ColorValue } from 'react-native';
 import Header from '../../components/ui/header';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -15,7 +16,7 @@ const aba = (
     size,
     focused,
   }: {
-    color: string;
+    color: ColorValue;
     size: number;
     focused: boolean;
   }) => (

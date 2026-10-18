@@ -1,8 +1,8 @@
-import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const logonome = require('../../assets/images/logonome.png');
 
@@ -18,7 +18,7 @@ export default function Header() {
         style: 'destructive',
         onPress: async () => {
           await AsyncStorage.removeItem('psicologo');
-          router.replace('/');
+          router.replace('/loginPage');
         },
       },
     ]);
@@ -34,7 +34,7 @@ export default function Header() {
       />
 
       <View style={styles.acoes}>
-        <Pressable onPress={() => router.push('/perfil')} hitSlop={8} accessibilityLabel="Perfil">
+        <Pressable onPress={() => router.push('/')} hitSlop={8} accessibilityLabel="Perfil">
           <FontAwesome5 name="user-friends" size={20} color="#5b00d2" />
         </Pressable>
 

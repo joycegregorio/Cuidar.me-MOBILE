@@ -126,9 +126,6 @@ export default function ConsultasAgendadasCard() {
 
         {!encerrada && (
           <View style={styles.cardFooter}>
-            <Pressable style={styles.footerBotao}>
-              <Text style={styles.footerBotaoTexto}>Enviar Lembrete</Text>
-            </Pressable>
             <Pressable
               style={styles.footerBotao}
               onPress={() => setRemarcandoConsultaId(consulta.id)}
@@ -176,7 +173,7 @@ export default function ConsultasAgendadasCard() {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    borderRadius: 20,
     padding: 16,
     marginTop: 16,
     gap: 16,
