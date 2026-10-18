@@ -16,18 +16,7 @@ export const mascaraCep = (v: string) => aplicarMascara(v, '#####-###');
 export const mascaraTelefone = (v: string) =>
   aplicarMascara(v, soDigitos(v).length > 10 ? '(##) #####-####' : '(##) ####-####');
 
-export function cpfValido(cpf: string) {
-  const d = soDigitos(cpf);
-  if (d.length !== 11 || /^(\d)\1+$/.test(d)) return false;
-
-  const digito = (n: number) => {
-    let soma = 0;
-    for (let i = 0; i < n; i++) soma += Number(d[i]) * (n + 1 - i);
-    const resto = (soma * 10) % 11;
-    return resto === 10 ? 0 : resto;
-  };
-  return digito(9) === Number(d[9]) && digito(10) === Number(d[10]);
-}
+export const cpfCompleto = (cpf: string) => soDigitos(cpf).length === 11;
 
 export const telefoneValido = (tel: string) => [10, 11].includes(soDigitos(tel).length);
 export const cepValido = (cep: string) => soDigitos(cep).length === 8;

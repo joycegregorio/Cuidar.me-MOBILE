@@ -18,7 +18,7 @@ import { pacienteRepository } from '@/database/pacienteRepository';
 import type { Endereco, Paciente, PacienteForm as DadosPaciente } from '@/types/paciente';
 import {
   cepValido,
-  cpfValido,
+  cpfCompleto,
   formatarDataBR,
   formatarDataISO,
   isoParaDate,
@@ -65,7 +65,7 @@ function validar(f: DadosPaciente, dataNasc: Date | null): Erros {
 
   if (!f.nome.trim()) e.nome = obrigatorio;
   if (!f.cpf) e.cpf = obrigatorio;
-  else if (!cpfValido(f.cpf)) e.cpf = 'CPF inválido';
+  else if (!cpfCompleto(f.cpf)) e.cpf = 'CPF incompleto (11 dígitos)';
   if (!f.rg.trim()) e.rg = obrigatorio;
   if (!dataNasc) e.dataNascimento = 'Selecione a data de nascimento';
   if (!f.sexo) e.sexo = 'Selecione o sexo';
@@ -90,6 +90,25 @@ function validar(f: DadosPaciente, dataNasc: Date | null): Erros {
   }
   return e;
 }
+
+const ROTULOS: Record<string, string> = {
+  nome: 'Nome',
+  cpf: 'CPF',
+  rg: 'RG',
+  dataNascimento: 'Data de nascimento',
+  sexo: 'Sexo',
+  estadoCivil: 'Estado civil',
+  grauInstrucao: 'Grau de instrução',
+  profissao: 'Profissão',
+  telefone: 'Telefone',
+  'enderecoPessoal.cep': 'CEP (endereço pessoal)',
+  'enderecoPessoal.logradouro': 'Logradouro (endereço pessoal)',
+  'enderecoPessoal.cidade': 'Cidade (endereço pessoal)',
+  'enderecoPessoal.estado': 'UF (endereço pessoal)',
+  'enderecoTrabalho.cep': 'CEP (endereço de trabalho)',
+  'enderecoTrabalho.estado': 'UF (endereço de trabalho)',
+  'contatoEmergencia.telefone': 'Telefone (contato de emergência)',
+};
 
 type CampoProps = TextInputProps & { rotulo: string; obrigatorio?: boolean; erro?: string };
 
@@ -173,7 +192,10 @@ export default function PacienteForm({ paciente, onSalvo, onCancelar }: Props) {
     const novosErros = validar(form, dataNasc);
     setErros(novosErros);
     if (Object.keys(novosErros).length > 0 || !dataNasc) {
-      Alert.alert('Atenção', 'Corrija os campos destacados em vermelho.');
+      const problemas = Object.entries(novosErros).map(
+        ([campo, mensagem]) => `• ${ROTULOS[campo] ?? campo}: ${mensagem}`
+      );
+      Alert.alert('Corrija os campos', problemas.join('\n'));
       return;
     }
 
