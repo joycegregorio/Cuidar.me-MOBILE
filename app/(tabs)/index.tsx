@@ -1,27 +1,31 @@
 import { listarAgendamentosDoDia } from '@/database/agendamentoRepository';
+import { pacienteRepository } from '@/database/pacienteRepository';
 import { AgendamentoComPaciente } from '@/types/agendamento';
+import { Paciente } from '@/types/paciente';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+const MAX_VISIVEIS = 3;
 
 export default function HomeScreen() {
   const db = useSQLiteContext();
   const [consultas, setConsultas] = useState<AgendamentoComPaciente[]>([]);
-  const [pagina, setPagina] = useState(0);
-
+  const [pacientes, setPacientes] = useState<Paciente[]>([]);
   useFocusEffect(
     useCallback(() => {
-      listarAgendamentosDoDia(db).then((lista) => {
-        setConsultas(lista);
-        setPagina(0);
-      });
+      listarAgendamentosDoDia(db).then(setConsultas);
+      pacienteRepository.listar(db).then(setPacientes);
     }, [db])
   );
 
-  const totalPaginas = Math.ceil(consultas.length/3);
-  const daPagina = consultas.slice(pagina * 3, pagina * 3 + 3);
+  const consultasVisiveis = consultas.slice(0, MAX_VISIVEIS);
+  const temMaisConsultas = consultas.length > MAX_VISIVEIS;
+
+  const pacientesVisiveis = pacientes.slice(0, MAX_VISIVEIS);
+  const temMaisPacientes = pacientes.length > MAX_VISIVEIS;
+
   return (
 
     <LinearGradient
@@ -46,12 +50,27 @@ export default function HomeScreen() {
             <Text style={styles.cardTitle}>
               Pacientes
             </Text>
-            <Text style={styles.cardSubtitle}>
-              Gerencie seus pacientes
-            </Text>
-          </View>
+            {pacientes.length === 0 && (
+              <Text style={styles.cardSubtitle}>
+                Gerencie seus pacientes
+              </Text>
+            )}
 
-           <View style={styles.card}>
+            {pacientesVisiveis.map((p) => (
+              <View key={p.id} style={styles.itemLinha}>
+                <Text style={styles.itemNome}>{p.nome}</Text>
+                <Text style={styles.itemTelefone}>{p.telefone}</Text>
+              </View>
+            ))}
+
+            {temMaisPacientes && (
+              <Pressable onPress={() => router.push('/(tabs)/paciente/pacientePage')}>
+                <Text style={styles.verMais}>Ver mais...</Text>
+              </Pressable>
+            )}
+          </View>
+  
+          <View style={styles.card}>
             <Text style={styles.cardTitle}>
               Consultas do dia
             </Text>
@@ -60,33 +79,18 @@ export default function HomeScreen() {
                   Nenhuma consulta para hoje.
               </Text>
             )}
-            {daPagina.map((c) => (
-              <Text key={c.id} style={styles.item}>
-                {c.paciente.nome} {c.data.split('-').reverse().join('/')} {c.horario}
-              </Text>
+
+            {consultasVisiveis.map((c) => (
+              <View key={c.id} style={styles.itemLinha}>
+                <Text style={styles.itemHorario}>{c.horario}</Text>
+                <Text style={styles.itemNome} numberOfLines={1}>{c.paciente.nome}</Text>
+              </View>
             ))}
 
-            {totalPaginas > 1 && (
-              <View style={styles.paginacao}>
-                <Pressable
-                  disabled={pagina === 0}
-                  onPress={() => setPagina(pagina - 1)}
-                  style={{ opacity: pagina === 0 ? 0.3 : 1 }}
-                >
-                  <Text style={styles.seta}>‹</Text>
-                </Pressable>
-
-                <Text style={styles.cardSubtitle}>
-                  {pagina + 1} de {totalPaginas}
-                </Text>
-                <Pressable
-                  disabled={pagina >= totalPaginas - 1}
-                  onPress={() => setPagina(pagina + 1)}
-                  style={{ opacity: pagina >= totalPaginas - 1 ? 0.3 : 1 }}
-                >
-                  <Text style={styles.seta}>›</Text>
-                </Pressable>
-              </View> 
+            {temMaisConsultas && (
+              <Pressable onPress={() => router.push('/(tabs)/agendamento/agendamentoPage')} hitSlop={8}>
+                <Text style={styles.verMais}>Ver mais...</Text>
+              </Pressable>
             )}
           </View>
         </View>
@@ -152,15 +156,37 @@ const styles = StyleSheet.create({
     color: '#5b00d2',
     marginBottom: 8,
   },
-  paginacao: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 20,
-    marginTop: 8,
-  },
   seta: {
     fontSize: 28,
     color: '#5b00d2',
+  },
+  itemLinha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 8,
+  },
+  itemHorario: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#5b00d2',
+    minWidth: 48,
+  },
+  itemNome: {
+    flex: 1,
+    fontSize: 16,
+    color: '#5b00d2',
+  },
+  itemTelefone: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#5b00d2',
+    minWidth: 48,
+  },
+  verMais: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#5b00d2',
+    marginTop: 4,
   },
 });

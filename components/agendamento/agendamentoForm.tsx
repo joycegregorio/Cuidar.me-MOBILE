@@ -8,19 +8,22 @@ import { useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
-    onSalvo?: () => void;
-}
+  onSalvo?: () => void;
+};
 
 const HORARIOS = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
 const LOCALIDADES = [
@@ -40,6 +43,7 @@ const formatarDataISO = (d: Date) => {
 
 export default function AgendamentoForm({ onSalvo }: Props) {
   const db = useSQLiteContext();
+  const insets = useSafeAreaInsets(); 
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [salvando, setSalvando] = useState(false);
   const [busca, setBusca] = useState('');
@@ -51,6 +55,8 @@ export default function AgendamentoForm({ onSalvo }: Props) {
   const [horario, setHorario] = useState('');
   const [tipo, setTipo] = useState('');
   const [localidade, setLocalidade] = useState('');
+
+  const alturaHeader = insets.top + 56;
 
   useFocusEffect(
     useCallback(() => {
@@ -69,6 +75,7 @@ export default function AgendamentoForm({ onSalvo }: Props) {
     setPacienteSelecionado(paciente);
     setBusca(paciente.nome);
     setMostrarSugestoes(false);
+    Keyboard.dismiss(); 
   };
 
   const handleSubmit = async () => {
@@ -111,125 +118,137 @@ export default function AgendamentoForm({ onSalvo }: Props) {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      keyboardShouldPersistTaps="handled"
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior="padding"
+      keyboardVerticalOffset={alturaHeader}
     >
-      <Text style={styles.title}>Agendamento de Consulta</Text>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Paciente</Text>
-
-        <View style={styles.inputBusca}>
-          <Ionicons name="search" size={20} color="#666" />
-          <TextInput
-            style={styles.inputBuscaText}
-            placeholder="Buscar paciente"
-            value={busca}
-            onChangeText={(texto) => {
-              setBusca(texto);
-              setPacienteSelecionado(null);
-              setMostrarSugestoes(true);
-            }}
-          />
-        </View>
-
-        {mostrarSugestoes && busca.length > 0 && (
-          <View style={styles.resultadoBusca}>
-            {sugestoes.map((paciente) => (
-              <Pressable
-                key={paciente.id}
-                style={styles.sugestaoItem}
-                onPress={() => selecionarPaciente(paciente)}
-              >
-                <Text>{paciente.nome}</Text>
-              </Pressable>
-            ))}
-            {sugestoes.length === 0 && (
-              <Text style={styles.sugestaoItem}>Nenhum paciente encontrado.</Text>
-            )}
-          </View>
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Detalhes da Consulta</Text>
-
-        <Text style={styles.label}>Data</Text>
-        <Pressable style={styles.inputBusca} onPress={() => setMostrarData(true)}>
-          <Ionicons name="calendar" size={18} color="#666" />
-          <Text style={styles.dataTexto}>
-            {data ? formatarDataBR(data) : 'Selecione a data'}
-          </Text>
-        </Pressable>
-
-        {mostrarData && (
-          <DateTimePicker
-            value={data || new Date()}
-            mode="date"
-            minimumDate={new Date()}
-            onChange={(event, dataEscolhida) => {
-              setMostrarData(false);
-              if (event.type === 'set' && dataEscolhida) setData(dataEscolhida);
-            }}
-          />
-        )}
-
-        <Text style={styles.label}>Horário</Text>
-        <View style={styles.pickerBox}>
-          <Picker selectedValue={horario} onValueChange={setHorario}>
-            <Picker.Item label="Selecione o horário" value="" />
-            {HORARIOS.map((h) => (
-              <Picker.Item key={h} label={h} value={h} />
-            ))}
-          </Picker>
-        </View>
-
-        <Text style={styles.label}>Tipo de Atendimento</Text>
-        <View style={styles.pickerBox}>
-          <Picker selectedValue={tipo} onValueChange={setTipo}>
-            <Picker.Item label="Selecione o tipo" value="" />
-            <Picker.Item label="Online" value="online" />
-            <Picker.Item label="Presencial" value="presencial" />
-          </Picker>
-        </View>
-
-        {tipo === 'presencial' && (
-          <>
-            <Text style={styles.label}>Localidade</Text>
-            <View style={styles.pickerBox}>
-              <Picker selectedValue={localidade} onValueChange={setLocalidade}>
-                <Picker.Item label="Selecione o local" value="" />
-                {LOCALIDADES.map((l) => (
-                  <Picker.Item key={l} label={l} value={l} />
-                ))}
-              </Picker>
-            </View>
-          </>
-        )}
-      </View>
-
-      <Pressable
-        style={[styles.botao, salvando && styles.botaoDesabilitado]}
-        onPress={handleSubmit}
-        disabled={salvando}
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag" 
+        showsVerticalScrollIndicator={false}
       >
-        {salvando ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.botaoTexto}>Agendar Consulta</Text>
-        )}
-      </Pressable>
-    </ScrollView>
+        <Text style={styles.title}>Agendamento de Consulta</Text>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Paciente</Text>
+
+          <View style={styles.inputBusca}>
+            <Ionicons name="search" size={20} color="#666" />
+            <TextInput
+              style={styles.inputBuscaText}
+              placeholder="Buscar paciente"
+              value={busca}
+              onChangeText={(texto) => {
+                setBusca(texto);
+                setPacienteSelecionado(null);
+                setMostrarSugestoes(true);
+              }}
+            />
+          </View>
+
+          {mostrarSugestoes && busca.length > 0 && (
+            <View style={styles.resultadoBusca}>
+              {sugestoes.map((paciente) => (
+                <Pressable
+                  key={paciente.id}
+                  style={styles.sugestaoItem}
+                  onPress={() => selecionarPaciente(paciente)}
+                >
+                  <Text>{paciente.nome}</Text>
+                </Pressable>
+              ))}
+              {sugestoes.length === 0 && (
+                <Text style={styles.sugestaoItem}>Nenhum paciente encontrado.</Text>
+              )}
+            </View>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Detalhes da Consulta</Text>
+
+          <Text style={styles.label}>Data</Text>
+          <Pressable style={styles.inputBusca} onPress={() => setMostrarData(true)}>
+            <Ionicons name="calendar" size={18} color="#666" />
+            <Text style={styles.dataTexto}>
+              {data ? formatarDataBR(data) : 'Selecione a data'}
+            </Text>
+          </Pressable>
+
+          {mostrarData && (
+            <DateTimePicker
+              value={data || new Date()}
+              mode="date"
+              minimumDate={new Date()}
+              onChange={(event, dataEscolhida) => {
+                setMostrarData(false);
+                if (event.type === 'set' && dataEscolhida) setData(dataEscolhida);
+              }}
+            />
+          )}
+
+          <Text style={styles.label}>Horário</Text>
+          <View style={styles.pickerBox}>
+            <Picker selectedValue={horario} onValueChange={setHorario}>
+              <Picker.Item label="Selecione o horário" value="" />
+              {HORARIOS.map((h) => (
+                <Picker.Item key={h} label={h} value={h} />
+              ))}
+            </Picker>
+          </View>
+
+          <Text style={styles.label}>Tipo de Atendimento</Text>
+          <View style={styles.pickerBox}>
+            <Picker selectedValue={tipo} onValueChange={setTipo}>
+              <Picker.Item label="Selecione o tipo" value="" />
+              <Picker.Item label="Online" value="online" />
+              <Picker.Item label="Presencial" value="presencial" />
+            </Picker>
+          </View>
+
+          {tipo === 'presencial' && (
+            <>
+              <Text style={styles.label}>Localidade</Text>
+              <View style={styles.pickerBox}>
+                <Picker selectedValue={localidade} onValueChange={setLocalidade}>
+                  <Picker.Item label="Selecione o local" value="" />
+                  {LOCALIDADES.map((l) => (
+                    <Picker.Item key={l} label={l} value={l} />
+                  ))}
+                </Picker>
+              </View>
+            </>
+          )}
+        </View>
+
+        <Pressable
+          style={[styles.botao, salvando && styles.botaoDesabilitado]}
+          onPress={handleSubmit}
+          disabled={salvando}
+        >
+          {salvando ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.botaoTexto}>Agendar Consulta</Text>
+          )}
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1, 
+  },
   container: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 16,
     marginTop: 16,
+    paddingBottom: 32,
   },
   title: {
     color: '#a755f7',

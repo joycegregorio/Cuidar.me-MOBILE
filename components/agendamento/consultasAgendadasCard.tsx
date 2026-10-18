@@ -6,9 +6,9 @@ import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native
 
 import RemarcarAgendamentoCard from '@/components/agendamento/remarcarAgendamentoCard';
 import {
-    atualizarAgendamento,
-    atualizarStatusAgendamento,
-    listarAgendamentos,
+  atualizarAgendamento,
+  atualizarStatusAgendamento,
+  listarAgendamentos,
 } from '@/database/agendamentoRepository';
 import type { AgendamentoComPaciente, StatusAgendamento } from '@/types/agendamento';
 
@@ -44,27 +44,28 @@ export default function ConsultasAgendadasCard() {
     }, [carregar])
   );
 
-  const handleCancelarConsulta = (id: number) => {
-    Alert.alert('Cancelar consulta', 'Tem certeza que deseja cancelar esta consulta?', [
-      { text: 'Não', style: 'cancel' },
-      {
-        text: 'Sim, cancelar',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await atualizarStatusAgendamento(db, id, 'CANCELADO');
-            setConsultas((atuais) =>
-              atuais.map((c) => (c.id === id ? { ...c, status: 'CANCELADO' } : c))
-            );
-            Alert.alert('Sucesso', 'Consulta cancelada com sucesso!');
-          } catch (error) {
-            console.error('Erro ao cancelar a consulta:', error);
-            Alert.alert('Erro', 'Não foi possível cancelar a consulta. Tente novamente!');
-          }
-        },
-      },
-    ]);
+  const mudarStatus = async (id: number, status: StatusAgendamento, mensagem: string) => {
+    try {
+      await atualizarStatusAgendamento(db, id, status);
+      setConsultas((atuais) => atuais.map((c) => (c.id === id ? {...c, status} : c)));
+      Alert.alert('Sucesso', mensagem);
+    } catch (error) {
+        console.error('Erro ao atualizar o status: ', error);
+        Alert.alert('Erro', 'Não foi possível atualizar o agendamento. Tente novamente!');
+    }
   };
+
+  const handleConfirmar = (id: number) => mudarStatus(id, 'CONFIRMADO', 'Consulta confirmada!');
+
+  const handleRealizada = (id: number) => Alert.alert('Consulta realizada', 'Marcar esta consulta como realizada?', [
+    {text: 'Não', style: 'cancel'},
+    {text: 'Sim', onPress: () => mudarStatus(id, 'REALIZADO', 'Consulta marcada como realizada!')},
+  ])
+
+  const handleCancelarConsulta = (id: number) => Alert.alert('Cancelar consulta', 'Tem certeza que deseja cancelar esta consulta?', [
+    {text: 'Não', style: 'cancel'},
+    {text: 'Sim, cancelar', style: 'destructive', onPress: () => mudarStatus(id, 'CANCELADO', 'Consulta cancelada com sucesso!')}
+  ])
 
   const handleSalvarRemarcacao = async (
     id: number,
@@ -126,16 +127,29 @@ export default function ConsultasAgendadasCard() {
 
         {!encerrada && (
           <View style={styles.cardFooter}>
-            <Pressable
-              style={styles.footerBotao}
-              onPress={() => setRemarcandoConsultaId(consulta.id)}
-            >
+            {(consulta.status === 'PENDENTE' || consulta.status === 'REMARCADO') && (
+              <Pressable
+                style={[styles.footerBotao, styles.footerBotaoPrimario, styles.footerBotaoCheio]}
+                onPress={() => handleConfirmar(consulta.id)}
+              >
+                <Text style={[styles.footerBotaoTexto, styles.footerBotaoTextoPrimario]}>Confirmar</Text>
+              </Pressable>
+            )}
+
+            {consulta.status === 'CONFIRMADO' && (
+              <Pressable
+                style={[styles.footerBotao, styles.footerBotaoPrimario, styles.footerBotaoCheio]}
+                onPress={() => handleRealizada(consulta.id)}
+              >
+                <Text style={[styles.footerBotaoTexto, styles.footerBotaoTextoPrimario]}>Marcar como realizada</Text>
+              </Pressable>
+            )}
+
+            <Pressable style={styles.footerBotao} onPress={() => setRemarcandoConsultaId(consulta.id)}>
               <Text style={styles.footerBotaoTexto}>Remarcar</Text>
             </Pressable>
-            <Pressable
-              style={styles.footerBotao}
-              onPress={() => handleCancelarConsulta(consulta.id)}
-            >
+
+            <Pressable style={styles.footerBotao} onPress={() => handleCancelarConsulta(consulta.id)}>
               <Text style={styles.footerBotaoTexto}>Cancelar</Text>
             </Pressable>
           </View>
@@ -178,10 +192,21 @@ const styles = StyleSheet.create({
     marginTop: 16,
     gap: 16,
   },
-  tituloLinha: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  titulo: { color: '#a755f7', fontSize: 20, fontWeight: 'bold' },
-  vazio: { textAlign: 'center', color: '#666', marginTop: 24 },
-
+  tituloLinha: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 8,
+  },
+  titulo: { 
+    color: '#a755f7', 
+    fontSize: 20, 
+    fontWeight: 'bold', 
+  },
+  vazio: { 
+    textAlign: 'center', 
+    color: '#666', 
+    marginTop: 24, 
+  },
   card: {
     backgroundColor: '#fff',
     borderRadius: 8,
@@ -199,29 +224,64 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 12,
   },
-  pacienteNome: { flex: 1, fontSize: 16, fontWeight: 'bold' },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  statusTexto: { fontSize: 12, fontWeight: '600' },
-
-  cardBody: { gap: 8, marginBottom: 16 },
-  linha: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  linhaTexto: { color: '#333' },
+  pacienteNome: { 
+    flex: 1, 
+    fontSize: 16, 
+    fontWeight: 'bold', 
+  },
+  statusBadge: { 
+    paddingHorizontal: 10, 
+    paddingVertical: 4, 
+    borderRadius: 12, 
+  },
+  statusTexto: { 
+    fontSize: 12, 
+    fontWeight: '600', 
+  },
+  cardBody: { 
+    gap: 8, 
+    marginBottom: 16,
+  },
+  linha: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 8,
+  },
+  linhaTexto: { 
+    color: '#333', 
+  },
   tipoBadge: {
     backgroundColor: '#F3E8FF',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
   },
-  tipoBadgeTexto: { fontSize: 12, color: '#6B21A8' },
-
-  cardFooter: { flexDirection: 'row', gap: 8 },
+  tipoBadgeTexto: { 
+    fontSize: 12, 
+    color: '#6B21A8', 
+  },
+  cardFooter: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap',
+    gap: 8,
+  },
   footerBotao: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: '45%', 
     borderWidth: 1,
     borderColor: '#a755f7',
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
+  },
+  footerBotaoCheio: {
+    flexBasis: '100%',
+  },
+  footerBotaoPrimario: {
+    backgroundColor: '#a755f7',
+  },
+  footerBotaoTextoPrimario: {
+    color: '#fff',
   },
   footerBotaoTexto: { color: '#a755f7', fontSize: 12, fontWeight: '600' },
 });

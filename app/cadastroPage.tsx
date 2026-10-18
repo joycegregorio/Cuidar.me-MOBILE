@@ -4,6 +4,8 @@ import { useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Keyboard,
+    KeyboardAvoidingView,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -11,6 +13,7 @@ import {
     TextInput,
     View,
 } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/contexts/auth-context';
 import { AuthError } from '@/services/authService';
@@ -20,6 +23,7 @@ type Erros = ErrosCadastro & { confirmarSenha?: string };
 
 export default function Cadastro(){
     const { cadastrar } = useAuth();
+    const insets = useSafeAreaInsets();
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
@@ -27,11 +31,14 @@ export default function Cadastro(){
     const [erros, setErros] = useState<Erros>({});
     const [cadastrando, setCadastrando] = useState(false);
 
+    const alturaHeader = insets.top + 56;
+
     const limparErro = (campo: keyof Erros) => setErros((e) => ({ ...e, [campo]: undefined }));
 
     const handleCadastro = async () => {
+        Keyboard.dismiss(); 
         const novosErros: Erros = validarCadastro({ nome, email, senha });
-        // A confirmação de senha só existe na tela, então é conferida aqui e não no serviço.
+
         if (!novosErros.senha && senha !== confirmarSenha) {
             novosErros.confirmarSenha = 'As senhas não conferem';
         }
@@ -66,90 +73,98 @@ export default function Cadastro(){
             end={{ x: 1, y: 1 }}
             style={styles.container}
         >
-            <ScrollView
-                style={styles.scroll}
-                contentContainerStyle={styles.scrollConteudo}
-                keyboardShouldPersistTaps="handled"
+            <KeyboardAvoidingView
+                style={styles.flex}
+                behavior="padding"
+                keyboardVerticalOffset={alturaHeader}
             >
-                <Text style={styles.title}>Realize seu Cadastro</Text>
-                <View style={styles.card}>
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Dados para cadastro</Text>
-                        <Text style={styles.label}>Nome</Text>
-                        <View style={[styles.inputBox, erros.nome ? styles.inputBoxErro : null]}>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Digite seu nome completo"
-                                value={nome}
-                                onChangeText={(v) => { setNome(v); limparErro('nome'); }}
-                                autoCapitalize="words"
-                            />
-                        </View>
-                        {erros.nome ? <Text style={styles.erro}>{erros.nome}</Text> : null}
+                <ScrollView
+                    style={styles.scroll}
+                    contentContainerStyle={styles.scrollConteudo}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="on-drag" 
+                    showsVerticalScrollIndicator={false} 
+                >
+                    <Text style={styles.title}>Realize seu Cadastro</Text>
+                    <View style={styles.card}>
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Dados para cadastro</Text>
+                            <Text style={styles.label}>Nome</Text>
+                            <View style={[styles.inputBox, erros.nome ? styles.inputBoxErro : null]}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Digite seu nome completo"
+                                    value={nome}
+                                    onChangeText={(v) => { setNome(v); limparErro('nome'); }}
+                                    autoCapitalize="words"
+                                />
+                            </View>
+                            {erros.nome ? <Text style={styles.erro}>{erros.nome}</Text> : null}
 
-                        <Text style={styles.label}>Email</Text>
-                        <View style={[styles.inputBox, erros.email ? styles.inputBoxErro : null]}>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Digite seu email"
-                                value={email}
-                                onChangeText={(v) => { setEmail(v); limparErro('email'); }}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                autoCorrect={false}
-                            />
-                        </View>
-                        {erros.email ? <Text style={styles.erro}>{erros.email}</Text> : null}
+                            <Text style={styles.label}>Email</Text>
+                            <View style={[styles.inputBox, erros.email ? styles.inputBoxErro : null]}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Digite seu email"
+                                    value={email}
+                                    onChangeText={(v) => { setEmail(v); limparErro('email'); }}
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                />
+                            </View>
+                            {erros.email ? <Text style={styles.erro}>{erros.email}</Text> : null}
 
-                        <Text style={styles.label}>Senha</Text>
-                        <View style={[styles.inputBox, erros.senha ? styles.inputBoxErro : null]}>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Digite sua senha"
-                                value={senha}
-                                onChangeText={(v) => { setSenha(v); limparErro('senha'); }}
-                                secureTextEntry
-                                autoCapitalize="none"
-                                autoCorrect={false}
-                            />
-                        </View>
-                        {erros.senha ? (
-                            <Text style={styles.erro}>{erros.senha}</Text>
-                        ) : (
-                            <Text style={styles.dica}>Mínimo de 8 caracteres, com letras e números.</Text>
-                        )}
+                            <Text style={styles.label}>Senha</Text>
+                            <View style={[styles.inputBox, erros.senha ? styles.inputBoxErro : null]}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Digite sua senha"
+                                    value={senha}
+                                    onChangeText={(v) => { setSenha(v); limparErro('senha'); }}
+                                    secureTextEntry
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                />
+                            </View>
+                            {erros.senha ? (
+                                <Text style={styles.erro}>{erros.senha}</Text>
+                            ) : (
+                                <Text style={styles.dica}>Mínimo de 8 caracteres, com letras e números.</Text>
+                            )}
 
-                        <Text style={styles.label}>Confirmar senha</Text>
-                        <View style={[styles.inputBox, erros.confirmarSenha ? styles.inputBoxErro : null]}>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Repita a senha"
-                                value={confirmarSenha}
-                                onChangeText={(v) => { setConfirmarSenha(v); limparErro('confirmarSenha'); }}
-                                secureTextEntry
-                                autoCapitalize="none"
-                                autoCorrect={false}
-                            />
+                            <Text style={styles.label}>Confirmar senha</Text>
+                            <View style={[styles.inputBox, erros.confirmarSenha ? styles.inputBoxErro : null]}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Repita a senha"
+                                    value={confirmarSenha}
+                                    onChangeText={(v) => { setConfirmarSenha(v); limparErro('confirmarSenha'); }}
+                                    secureTextEntry
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                />
+                            </View>
+                            {erros.confirmarSenha ? <Text style={styles.erro}>{erros.confirmarSenha}</Text> : null}
                         </View>
-                        {erros.confirmarSenha ? <Text style={styles.erro}>{erros.confirmarSenha}</Text> : null}
+                        <Pressable
+                            style={[styles.botao, cadastrando && styles.botaoDesabilitado]}
+                            onPress={handleCadastro}
+                            disabled={cadastrando}
+                        >
+                            {cadastrando ? (
+                                <ActivityIndicator color="#fff" />
+                            ) : (
+                                <Text style={styles.botaoTexto}>Cadastrar</Text>
+                            )}
+                        </Pressable>
+
+                        <Pressable style={styles.link} onPress={() => router.replace('/loginPage')}>
+                            <Text style={styles.linkTexto}>Já tenho conta</Text>
+                        </Pressable>
                     </View>
-                    <Pressable
-                        style={[styles.botao, cadastrando && styles.botaoDesabilitado]}
-                        onPress={handleCadastro}
-                        disabled={cadastrando}
-                    >
-                        {cadastrando ? (
-                            <ActivityIndicator color="#fff" />
-                        ) : (
-                            <Text style={styles.botaoTexto}>Cadastrar</Text>
-                        )}
-                    </Pressable>
-
-                    <Pressable style={styles.link} onPress={() => router.replace('/loginPage')}>
-                        <Text style={styles.linkTexto}>Já tenho conta</Text>
-                    </Pressable>
-                </View>
-            </ScrollView>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </LinearGradient>
 
     );
@@ -160,6 +175,10 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 5,
         alignItems: 'center',
+    },
+    flex: {
+        flex: 1,
+        width: '100%', 
     },
     scroll: {
         flex: 1,
@@ -189,12 +208,13 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         marginBottom: 12,
+        color: '#a755f7',
     },
     label: {
         marginTop: 12,
         marginBottom: 4,
         fontWeight: '500',
-        color: '#333333',
+        color: '#a51cd3',
     },
     inputBox: {
         flexDirection: 'row',
