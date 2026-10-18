@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
-import { ColorValue } from 'react-native';
+import { Redirect, Tabs } from 'expo-router';
+import { ActivityIndicator, ColorValue, View } from 'react-native';
+import { useAuth } from '@/contexts/auth-context';
 import Header from '../../components/ui/header';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -29,6 +30,18 @@ const aba = (
 });
 
 export default function TabsLayout() {
+  const { psicologo, carregando } = useAuth();
+
+  if (carregando) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#5b00d2" />
+      </View>
+    );
+  }
+
+  if (!psicologo) return <Redirect href="/loginPage" />;
+
   return (
     <Tabs
       screenOptions={{
