@@ -6,11 +6,6 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-type Psicologo = {
-  id: number;
-  nome: string;
-}
-
 export default function HomeScreen() {
   const db = useSQLiteContext();
   const [consultas, setConsultas] = useState<AgendamentoComPaciente[]>([]);
