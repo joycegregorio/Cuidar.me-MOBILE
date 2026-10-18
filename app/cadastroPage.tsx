@@ -72,20 +72,20 @@ export default function Cadastro(){
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
+        padding: 5,
+        alignItems: 'center',
     },
     title: {
         color: '#fcfbfd',
         fontSize: 18,
         fontWeight: 'bold',
-        marginBottom: 16,
-
+        marginVertical: 24,
     },
     card: {
         backgroundColor: '#FFFFFF',
         borderRadius: 20,
         padding: 16,
-        marginTop: 16,
+        gap: 14,
     },
     section: {
         marginBottom: 8,

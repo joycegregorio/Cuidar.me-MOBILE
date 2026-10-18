@@ -30,10 +30,10 @@ export default function RootLayout() {
           value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
         >
           <Stack>
-            <Stack.Screen name="login" options={{ header: () => <HeaderAutentication/> }} />
-            <Stack.Screen name="cadastro" options={{ header: () => <HeaderAutentication/> }} />
-            <Stack.Screen name="sobre" options={{ header: () => <HeaderAutentication/> }} />
-            <Stack.Screen name="contato" options={{ header: () => <HeaderAutentication/> }} />
+            <Stack.Screen name="loginPage" options={{ header: () => <HeaderAutentication/> }} />
+            <Stack.Screen name="cadastroPage" options={{ header: () => <HeaderAutentication/> }} />
+            <Stack.Screen name="sobrePage" options={{ header: () => <HeaderAutentication/> }} />
+            <Stack.Screen name="contatoPage" options={{ header: () => <HeaderAutentication/> }} />
             
             <Stack.Screen
               name="(tabs)"

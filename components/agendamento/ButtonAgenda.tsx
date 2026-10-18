@@ -1,4 +1,4 @@
-import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export type AbaAgenda = 'novo' | 'consultas';
@@ -43,9 +43,9 @@ export default function ButtonAgenda({
         ]}
         onPress={() => onMudarAba('consultas')}
       >
-        <FontAwesome5
-          name="clipboard-list"
-          size={19}
+        <Ionicons
+          name="clipboard-outline"
+          size={20}
           color={abaAtiva === 'consultas' ? '#FFFFFF' : '#5b00d2'}
         />
         <Text

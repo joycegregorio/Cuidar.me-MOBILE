@@ -3,12 +3,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
-    Alert,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View
 } from 'react-native';
 
 export default function Login() {
@@ -90,21 +90,19 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: 5,
     alignItems: 'center',
   },
   title: {
     color: '#fcfbfd',
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginVertical: 24,
   },
-
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 16,
-    marginTop: 16,
     gap: 14,
   },
   section: {
@@ -114,12 +112,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 12,
+    color: '#a755f7',
   },
   label: {
     marginTop: 12,
     marginBottom: 4,
     fontWeight: '500',
-    color: '#333333',
+    color: '#a51cd3',
 
   },
   inputBox: {

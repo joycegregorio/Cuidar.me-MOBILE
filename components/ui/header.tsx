@@ -1,4 +1,4 @@
-import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
@@ -35,7 +35,7 @@ export default function Header() {
 
       <View style={styles.acoes}>
         <Pressable onPress={() => router.push('/')} hitSlop={8} accessibilityLabel="Perfil">
-          <FontAwesome5 name="user-friends" size={20} color="#5b00d2" />
+          <Ionicons name="people-outline" size={24} color="#5b00d2" />
         </Pressable>
 
         <Pressable onPress={handleLogout} hitSlop={8} accessibilityLabel="Sair">
