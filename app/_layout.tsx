@@ -10,6 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 
+import { AuthProvider } from '@/contexts/auth-context';
 import { DATABASE_NAME, migrateDbIfNeeded } from '@/database/migrations';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -26,22 +27,24 @@ export default function RootLayout() {
         databaseName={DATABASE_NAME}
         onInit={migrateDbIfNeeded}
       >
-        <ThemeProvider
-          value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
-        >
-          <Stack>
-            <Stack.Screen
-              name="(tabs)"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="modal"
-              options={{ presentation: 'modal', title: 'Modal' }}
-            />
-          </Stack>
+        <AuthProvider>
+          <ThemeProvider
+            value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
+          >
+            <Stack>
+              <Stack.Screen
+                name="(tabs)"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="modal"
+                options={{ presentation: 'modal', title: 'Modal' }}
+              />
+            </Stack>
 
-          <StatusBar style="dark" />
-        </ThemeProvider>
+            <StatusBar style="dark" />
+          </ThemeProvider>
+        </AuthProvider>
       </SQLiteProvider>
     </SafeAreaProvider>
   );
