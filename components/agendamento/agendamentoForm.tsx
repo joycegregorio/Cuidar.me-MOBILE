@@ -1,9 +1,14 @@
+import { inserirAgendamento } from '@/database/agendamentoRepository';
+import { pacienteRepository } from '@/database/pacienteRepository';
 import type { Paciente } from '@/types/paciente';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
-import { useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useCallback, useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     Pressable,
     ScrollView,
@@ -14,7 +19,7 @@ import {
 } from 'react-native';
 
 type Props = {
-    pacientes?: Paciente[];
+    onSalvo?: () => void;
 }
 
 const HORARIOS = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
@@ -33,7 +38,10 @@ const formatarDataISO = (d: Date) => {
   return `${ano}-${mes}-${dia}`;
 };
 
-export default function AgendamentoForm({ pacientes = [] }: Props) {
+export default function AgendamentoForm({ onSalvo }: Props) {
+  const db = useSQLiteContext();
+  const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  const [salvando, setSalvando] = useState(false);
   const [busca, setBusca] = useState('');
   const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
   const [pacienteSelecionado, setPacienteSelecionado] = useState<Paciente | null>(null);
@@ -43,6 +51,15 @@ export default function AgendamentoForm({ pacientes = [] }: Props) {
   const [horario, setHorario] = useState('');
   const [tipo, setTipo] = useState('');
   const [localidade, setLocalidade] = useState('');
+
+  useFocusEffect(
+    useCallback(() => {
+      pacienteRepository
+        .listar(db)
+        .then(setPacientes)
+        .catch((error) => console.error('Erro ao buscar pacientes:', error));
+    }, [db])
+  );
 
   const sugestoes = pacientes.filter((p) =>
     p.nome.toLowerCase().includes(busca.toLowerCase())
@@ -54,7 +71,7 @@ export default function AgendamentoForm({ pacientes = [] }: Props) {
     setMostrarSugestoes(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!pacienteSelecionado) return Alert.alert('Atenção', 'Selecione um paciente.');
     if (!data) return Alert.alert('Atenção', 'Selecione a data.');
     if (!horario) return Alert.alert('Atenção', 'Selecione o horário.');
@@ -62,20 +79,35 @@ export default function AgendamentoForm({ pacientes = [] }: Props) {
     if (tipo === 'presencial' && !localidade)
       return Alert.alert('Atenção', 'Selecione a localidade.');
 
-    const agendamento = {
-      pacienteId: pacienteSelecionado.id,
-      data: formatarDataISO(data),
-      horario,
-      tipo,
-      localidade: tipo === 'presencial' ? localidade : null,
-    };
+    setSalvando(true);
+    try {
+      await inserirAgendamento(db, {
+        pacienteId: pacienteSelecionado.id,
+        data: formatarDataISO(data),
+        horario,
+        localidade: tipo === 'presencial' ? localidade : 'Online',
+        status: 'PENDENTE',
+      });
 
-    console.log(agendamento);
+      Alert.alert(
+        'Consulta agendada',
+        `${pacienteSelecionado.nome}\n${formatarDataBR(data)} às ${horario}`
+      );
 
-    Alert.alert(
-    'Consulta agendada',
-    `${pacienteSelecionado.nome}\n${formatarDataBR(data)} às ${horario}`
-  );
+      setBusca('');
+      setMostrarSugestoes(false);
+      setPacienteSelecionado(null);
+      setData(null);
+      setHorario('');
+      setTipo('');
+      setLocalidade('');
+      onSalvo?.();
+    } catch (error) {
+      console.error('Erro ao salvar agendamento:', error);
+      Alert.alert('Erro', 'Não foi possível agendar a consulta. Tente novamente!');
+    } finally {
+      setSalvando(false);
+    }
   };
 
   return (
@@ -113,6 +145,9 @@ export default function AgendamentoForm({ pacientes = [] }: Props) {
                 <Text>{paciente.nome}</Text>
               </Pressable>
             ))}
+            {sugestoes.length === 0 && (
+              <Text style={styles.sugestaoItem}>Nenhum paciente encontrado.</Text>
+            )}
           </View>
         )}
       </View>
@@ -174,8 +209,16 @@ export default function AgendamentoForm({ pacientes = [] }: Props) {
         )}
       </View>
 
-      <Pressable style={styles.botao} onPress={handleSubmit} >
-        <Text style={styles.botaoTexto}>Agendar Consulta</Text>
+      <Pressable
+        style={[styles.botao, salvando && styles.botaoDesabilitado]}
+        onPress={handleSubmit}
+        disabled={salvando}
+      >
+        {salvando ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.botaoTexto}>Agendar Consulta</Text>
+        )}
       </Pressable>
     </ScrollView>
   );
@@ -253,6 +296,9 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  botaoDesabilitado: {
+    opacity: 0.6,
   },
   botaoTexto: {
     color: '#fff',

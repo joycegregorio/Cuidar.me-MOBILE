@@ -19,7 +19,7 @@ export default function Agendamentos() {
     >
         <ButtonAgenda abaAtiva={abaAtiva} onMudarAba={setAbaAtiva} />
 
-        {abaAtiva === 'novo' && <AgendamentoForm />}
+        {abaAtiva === 'novo' && <AgendamentoForm onSalvo={() => setAbaAtiva('consultas')} />}
         {abaAtiva === 'consultas' && <ConsultasAgendadasCard />}
     </LinearGradient>
   );
