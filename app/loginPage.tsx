@@ -1,16 +1,19 @@
-
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
+  KeyboardAvoidingView,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  View
+  View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/contexts/auth-context';
 import { AuthError } from '@/services/authService';
@@ -18,12 +21,16 @@ import { type ErrosLogin, validarLogin } from '@/utils/validacaoPsicologo';
 
 export default function Login() {
   const { entrar } = useAuth();
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [erros, setErros] = useState<ErrosLogin>({});
   const [entrando, setEntrando] = useState(false);
 
+  const alturaHeader = insets.top + 56;
+
   const handleLogin = async () => {
+    Keyboard.dismiss();
     const novosErros = validarLogin({ email, senha });
     setErros(novosErros);
     if (Object.keys(novosErros).length > 0) {
@@ -55,66 +62,77 @@ export default function Login() {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-        <Text style={styles.title}>Realize seu Login</Text>
-        <View style={styles.card}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior="padding"
+        keyboardVerticalOffset={alturaHeader}
+      >
+        <ScrollView
+          contentContainerStyle={styles.conteudo}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.title}>Realize seu Login</Text>
+          <View style={styles.card}>
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                    Dados de acesso
-                </Text>
+              <Text style={styles.sectionTitle}>Dados de acesso</Text>
 
-                <Text style={styles.label}>E-mail</Text>
-                <View style={[styles.inputBox, erros.email ? styles.inputBoxErro : null]}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Digite seu email"
-                        value={email}
-                        onChangeText={(v) => {
-                            setEmail(v);
-                            setErros((e) => ({ ...e, email: undefined }));
-                        }}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                    />
-                </View>
-                {erros.email ? <Text style={styles.erro}>{erros.email}</Text> : null}
+              <Text style={styles.label}>E-mail</Text>
+              <View style={[styles.inputBox, erros.email ? styles.inputBoxErro : null]}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Digite seu email"
+                  value={email}
+                  onChangeText={(v) => {
+                    setEmail(v);
+                    setErros((e) => ({ ...e, email: undefined }));
+                  }}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+              {erros.email ? <Text style={styles.erro}>{erros.email}</Text> : null}
 
-                <Text style={styles.label}>Senha</Text>
-                <View style={[styles.inputBox, erros.senha ? styles.inputBoxErro : null]}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Digite sua senha"
-                        value={senha}
-                        onChangeText={(v) => {
-                            setSenha(v);
-                            setErros((e) => ({ ...e, senha: undefined }));
-                        }}
-                        secureTextEntry
-                        autoCapitalize="none"
-                    />
-                </View>
-                {erros.senha ? <Text style={styles.erro}>{erros.senha}</Text> : null}
+              <Text style={styles.label}>Senha</Text>
+              <View style={[styles.inputBox, erros.senha ? styles.inputBoxErro : null]}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Digite sua senha"
+                  value={senha}
+                  onChangeText={(v) => {
+                    setSenha(v);
+                    setErros((e) => ({ ...e, senha: undefined }));
+                  }}
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+              </View>
+              {erros.senha ? <Text style={styles.erro}>{erros.senha}</Text> : null}
             </View>
 
             <Pressable
-                style={[styles.botao, entrando && styles.botaoDesabilitado]}
-                onPress={handleLogin}
-                disabled={entrando}
+              style={[styles.botao, entrando && styles.botaoDesabilitado]}
+              onPress={handleLogin}
+              disabled={entrando}
             >
-                {entrando ? (
-                    <ActivityIndicator color="#fff" />
-                ) : (
-                    <Text style={styles.botaoTexto}>Entrar</Text>
-                )}
+              {entrando ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.botaoTexto}>Entrar</Text>
+              )}
             </Pressable>
 
             <Pressable
-                style={styles.botao}
-                onPress={() => router.push('/cadastroPage')}
+              style={styles.botao}
+              onPress={() => router.push('/cadastroPage')}
             >
-                <Text style={styles.botaoTexto}>Cadastrar</Text>
+              <Text style={styles.botaoTexto}>Cadastrar</Text>
             </Pressable>
-        </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </LinearGradient>
   );
 }
@@ -122,7 +140,14 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  flex: {
+    flex: 1,
+  },
+  conteudo: {
+    flexGrow: 1,
     padding: 5,
+    paddingBottom: 24,
     alignItems: 'center',
   },
   title: {
@@ -151,7 +176,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontWeight: '500',
     color: '#a51cd3',
-
   },
   inputBox: {
     flexDirection: 'row',

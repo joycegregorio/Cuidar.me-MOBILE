@@ -5,12 +5,16 @@ import PacientesCadastradosCard from '@/components/paciente/pacientesCadastrados
 import type { Paciente } from '@/types/paciente';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Pacientes() {
+  const insets = useSafeAreaInsets();
   const [abaAtiva, setAbaAtiva] = useState<AbaPaciente>('cadastrados');
   const [editando, setEditando] = useState<Paciente | null>(null);
   const [versao, setVersao] = useState(0);
+
+  const offSetTeclado = insets.top + 72;
 
   const handleCadastrado = () => {
     setVersao((v) => v + 1);
@@ -29,25 +33,35 @@ export default function Pacientes() {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <ButtonPaciente abaAtiva={abaAtiva} onMudarAba={setAbaAtiva} />
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior="padding"
+        keyboardVerticalOffset={offSetTeclado}
+      >
+        <ButtonPaciente abaAtiva={abaAtiva} onMudarAba={setAbaAtiva} />
 
-      {abaAtiva === 'novo' && (
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
-          <View style={styles.card}>
-            <PacienteForm onSalvo={handleCadastrado} />
-          </View>
-        </ScrollView>
-      )}
+        {abaAtiva === 'novo' && (
+          <ScrollView 
+          keyboardShouldPersistTaps="handled" 
+          keyboardDismissMode='on-drag'
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scroll}>
+            <View style={styles.card}>
+              <PacienteForm onSalvo={handleCadastrado} />
+            </View>
+          </ScrollView>
+        )}
 
-      {abaAtiva === 'cadastrados' && (
-        <PacientesCadastradosCard key={versao} onEditar={setEditando} />
-      )}
+        {abaAtiva === 'cadastrados' && (
+          <PacientesCadastradosCard key={versao} onEditar={setEditando} />
+        )}
 
-      <EditarPacienteCard
-        paciente={editando}
-        onSalvo={handleEditado}
-        onCancelar={() => setEditando(null)}
-      />
+        <EditarPacienteCard
+          paciente={editando}
+          onSalvo={handleEditado}
+          onCancelar={() => setEditando(null)}
+        />
+      </KeyboardAvoidingView>  
     </LinearGradient>
   );
 }
@@ -56,6 +70,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  flex: {
+    flex: 1,
   },
   scroll: {
     paddingBottom: 24,
