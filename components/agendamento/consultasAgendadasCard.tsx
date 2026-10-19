@@ -161,8 +161,9 @@ export default function ConsultasAgendadasCard() {
   const consultaRemarcando = consultas.find((c) => c.id === remarcandoConsultaId) ?? null;
 
   return (
-    <View>
+    <View style={styles.wrapper}>
       <FlatList
+        style={styles.lista}
         data={consultas}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderConsulta}
@@ -185,11 +186,13 @@ export default function ConsultasAgendadasCard() {
 }
 
 const styles = StyleSheet.create({
+  wrapper: { flex: 1 },
+  lista: { flex: 1, marginTop: 16 },
   container: {
+    marginBottom: 24,
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 16,
-    marginTop: 16,
     gap: 16,
   },
   tituloLinha: { 

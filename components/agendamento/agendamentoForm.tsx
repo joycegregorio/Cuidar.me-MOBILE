@@ -124,11 +124,12 @@ export default function AgendamentoForm({ onSalvo }: Props) {
       keyboardVerticalOffset={alturaHeader}
     >
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag" 
+        keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.container}>
         <Text style={styles.title}>Agendamento de Consulta</Text>
 
         <View style={styles.section}>
@@ -234,6 +235,7 @@ export default function AgendamentoForm({ onSalvo }: Props) {
             <Text style={styles.botaoTexto}>Agendar Consulta</Text>
           )}
         </Pressable>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -243,11 +245,14 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1, 
   },
+  scroll: {
+    paddingTop: 16,
+    paddingBottom: 24
+  },
   container: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 16,
-    marginTop: 16,
     paddingBottom: 32,
   },
   title: {

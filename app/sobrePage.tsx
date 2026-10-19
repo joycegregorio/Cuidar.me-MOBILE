@@ -37,7 +37,7 @@ export default function Sobre() {
 
         <View style={styles.card}>
           <Text style={styles.descricao}>
-            O Cuidar.me é um sistema web em desenvolvimento para otimizar a
+            O Cuidar.me é um sistema em desenvolvimento para otimizar a
             rotina administrativa de psicólogos. Em um cenário onde o excesso
             de tarefas manuais pode comprometer a qualidade do atendimento, ele
             surge como uma solução completa para o dia a dia do consultório.
