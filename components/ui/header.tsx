@@ -71,5 +71,8 @@ const styles = StyleSheet.create({
     width: 120,
     height: 40,
   },
-  acoes: { flexDirection: 'row', alignItems: 'center', gap: 20 },
+  acoes: { flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 20,
+  },
 });

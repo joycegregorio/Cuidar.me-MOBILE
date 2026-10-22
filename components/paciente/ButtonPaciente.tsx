@@ -20,7 +20,11 @@ export default function ButtonPaciente({ abaAtiva, onMudarAba }: PacienteTabsPro
           size={20}
           color={abaAtiva === 'novo' ? '#FFFFFF' : '#5b00d2'}
         />
-        <Text style={[styles.textoBotao, abaAtiva === 'novo' && styles.textoBotaoAtivo]}>
+        <Text style={[styles.textoBotao, abaAtiva === 'novo' && styles.textoBotaoAtivo]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+        >
           Novo Paciente
         </Text>
       </Pressable>
@@ -34,7 +38,10 @@ export default function ButtonPaciente({ abaAtiva, onMudarAba }: PacienteTabsPro
           size={20}
           color={abaAtiva === 'cadastrados' ? '#FFFFFF' : '#5b00d2'}
         />
-        <Text style={[styles.textoBotao, abaAtiva === 'cadastrados' && styles.textoBotaoAtivo]}>
+        <Text style={[styles.textoBotao, abaAtiva === 'cadastrados' && styles.textoBotaoAtivo]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}>
           Pacientes Cadastrados
         </Text>
       </Pressable>
