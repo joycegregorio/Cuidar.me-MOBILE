@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useState } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import RemarcarAgendamentoCard from '@/components/agendamento/remarcarAgendamentoCard';
 import {
@@ -20,6 +20,17 @@ const STATUS_LABELS: Record<StatusAgendamento, { fundo: string; texto: string }>
   REMARCADO: { fundo: '#F3E8FF', texto: '#6B21A8' },
 };
 
+type FiltroPorStatus = StatusAgendamento | 'TODOS';
+
+const FILTROS: {valor: FiltroPorStatus; label: string} [] = [
+  {valor: 'TODOS', label: 'Todas'},
+  {valor: 'PENDENTE', label: 'Pendentes'},
+  {valor: 'CANCELADO', label: 'Canceladas'},
+  {valor: 'REMARCADO', label: 'Remarcadas'},
+  {valor: 'REALIZADO', label: 'Realizadas'},
+  {valor: 'CONFIRMADO', label: 'Confirmadas'},
+];
+
 const formatarData = (data: string) => {
   const [ano, mes, dia] = data.split('-');
   return `${dia}/${mes}/${ano}`;
@@ -28,7 +39,14 @@ const formatarData = (data: string) => {
 export default function ConsultasAgendadasCard() {
   const db = useSQLiteContext();
   const [consultas, setConsultas] = useState<AgendamentoComPaciente[]>([]);
+  
   const [remarcandoConsultaId, setRemarcandoConsultaId] = useState<number | null>(null);
+  const [filtrarStatus, setFiltrarStatus] = useState<FiltroPorStatus>('TODOS');
+
+  const consultasFiltradas = useMemo(
+    () => (filtrarStatus === 'TODOS' ? consultas : consultas.filter((c) => c.status === filtrarStatus)),
+    [consultas, filtrarStatus]
+  );
 
   const carregar = useCallback(async () => {
     try {
@@ -164,16 +182,43 @@ export default function ConsultasAgendadasCard() {
     <View style={styles.wrapper}>
       <FlatList
         style={styles.lista}
-        data={consultas}
+        data={consultasFiltradas}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderConsulta}
         contentContainerStyle={styles.container}
         ListHeaderComponent={
-          <View style={styles.tituloLinha}>
-            <Text style={styles.titulo}>Consultas Agendadas</Text>
+          <View>
+            <View style={styles.tituloLinha}>
+              <Text style={styles.titulo}>Consultas Agendadas</Text>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filtrosContainer}
+            >
+              {FILTROS.map((f) => {
+                const ativo = filtrarStatus === f.valor;
+                return (
+                  <Pressable
+                    key={f.valor}
+                    style={[styles.chip, ativo && styles.chipAtivo]}
+                    onPress={() => setFiltrarStatus(f.valor)}
+                  >
+                    <Text style={[styles.chipTexto, ativo && styles.chipTextoAtivo]}>{f.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
           </View>
         }
-        ListEmptyComponent={<Text style={styles.vazio}>Nenhuma consulta agendada.</Text>}
+        ListEmptyComponent={
+          <Text style={styles.vazio}>
+            {filtrarStatus === 'TODOS'
+              ? 'Nenhuma consulta agendada.'
+              : 'Nenhuma consulta com este status.'}
+          </Text>
+        }
       />
 
       <RemarcarAgendamentoCard
@@ -209,6 +254,28 @@ const styles = StyleSheet.create({
     textAlign: 'center', 
     color: '#666', 
     marginTop: 24, 
+  },
+  filtrosContainer: {
+  gap: 8,
+  paddingVertical: 12,
+  },
+  chip: {
+    borderWidth: 1,
+    borderColor: '#a755f7',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  chipAtivo: {
+    backgroundColor: '#a755f7',
+  },
+  chipTexto: {
+    color: '#a755f7',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  chipTextoAtivo: {
+    color: '#fff',
   },
   card: {
     backgroundColor: '#fff',

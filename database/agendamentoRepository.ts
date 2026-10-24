@@ -59,7 +59,7 @@ export async function listarAgendamentos(db: SQLiteDatabase): Promise<Agendament
         `SELECT a.*, p.nome AS paciente_nome
          FROM agendamento a
          JOIN paciente p ON a.paciente_id = p.id
-         ORDER BY a.data
+         ORDER BY a.data DESC, a.horario DESC, a.id DESC
         `);
     return rows.map(toAgendamentoComPaciente);
 }
@@ -108,3 +108,4 @@ export async function atualizarAgendamento(db: SQLiteDatabase, agendamentoId: nu
         [dados.pacienteId, dados.data, dados.horario, dados.localidade, dados.status, agendamentoId]
     );
 }
+
