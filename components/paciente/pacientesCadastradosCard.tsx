@@ -11,15 +11,109 @@ import {
   Text,
   TextInput,
   View,
+  Modal,
+  ScrollView
 } from 'react-native';
 
 import { pacienteRepository } from '@/database/pacienteRepository';
-import type { Paciente } from '@/types/paciente';
-import { calcularIdade } from '@/utils/validacaoPaciente';
+import type { Paciente, Endereco } from '@/types/paciente';
+import { calcularIdade, formatarDataBR, isoParaDate } from '@/utils/validacaoPaciente';
 
 type Props = {
   onEditar: (paciente: Paciente) => void;
 };
+
+function Info({ rotulo, valor }: { rotulo: string; valor?: string }) {
+  return (
+    <View style={styles.infoLinha}>
+      <Text style={styles.infoRotulo}>{rotulo}</Text>
+      <Text style={styles.infoValor}>{valor?.trim() ? valor : '—'}</Text>
+    </View>
+  );
+}
+
+function BlocoEndereco({ titulo, e }: { titulo: string; e: Endereco }) {
+  const vazio = !e.cep && !e.logradouro && !e.numero && !e.cidade && !e.estado;
+  return (
+    <View style={styles.secao}>
+      <Text style={styles.secaoTitulo}>{titulo}</Text>
+      {vazio ? (
+        <Text style={styles.infoValor}>Não informado</Text>
+      ) : (
+        <>
+          <Info rotulo="CEP" valor={e.cep} />
+          <Info rotulo="Logradouro" valor={e.logradouro} />
+          <Info rotulo="Número" valor={e.numero} />
+          <Info rotulo="Cidade" valor={e.cidade} />
+          <Info rotulo="UF" valor={e.estado} />
+        </>
+      )}
+    </View>
+  );
+}
+
+function DetalhesPacienteModal({
+  paciente,
+  onFechar,
+}: {
+  paciente: Paciente | null;
+  onFechar: () => void;
+}) {
+  return (
+    <Modal visible={!!paciente} animationType="slide" transparent onRequestClose={onFechar}>
+      <View style={styles.modalFundo}>
+        <View style={styles.modalConteudo}>
+          {paciente && (
+            <>
+              <View style={styles.modalCabecalho}>
+                <Text style={styles.modalTitulo} numberOfLines={2}>
+                  {paciente.nome}
+                </Text>
+                <Pressable onPress={onFechar} hitSlop={12}>
+                  <Ionicons name="close" size={26} color="#666" />
+                </Pressable>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.secao}>
+                  <Text style={styles.secaoTitulo}>Dados pessoais</Text>
+                  <Info rotulo="CPF" valor={paciente.cpf} />
+                  <Info rotulo="RG" valor={paciente.rg} />
+                  <Info
+                    rotulo="Data de nascimento"
+                    valor={`${formatarDataBR(isoParaDate(paciente.dataNascimento))} (${calcularIdade(paciente.dataNascimento)} anos)`}
+                  />
+                  <Info rotulo="Sexo" valor={paciente.sexo} />
+                  <Info rotulo="Estado civil" valor={paciente.estadoCivil} />
+                  <Info rotulo="Grau de instrução" valor={paciente.grauInstrucao} />
+                  <Info rotulo="Profissão" valor={paciente.profissao} />
+                  <Info rotulo="Telefone" valor={paciente.telefone} />
+                </View>
+
+                <BlocoEndereco titulo="Endereço pessoal" e={paciente.enderecoPessoal} />
+                <BlocoEndereco titulo="Endereço de trabalho" e={paciente.enderecoTrabalho} />
+
+                <View style={styles.secao}>
+                  <Text style={styles.secaoTitulo}>Contato de emergência</Text>
+                  <Info rotulo="Nome" valor={paciente.contatoEmergencia.nome} />
+                  <Info rotulo="Telefone" valor={paciente.contatoEmergencia.telefone} />
+                  <Info rotulo="Parentesco" valor={paciente.contatoEmergencia.parentesco} />
+                </View>
+
+                <View style={styles.secao}>
+                  <Text style={styles.secaoTitulo}>Observações</Text>
+                  <Text style={styles.infoValor}>
+                    {paciente.infoAdicionais?.trim() ? paciente.infoAdicionais : 'Nenhuma observação.'}
+                  </Text>
+                </View>
+              </ScrollView>
+            </>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+}
 
 export default function PacientesCadastradosCard({ onEditar }: Props) {
   const db = useSQLiteContext();
@@ -27,6 +121,7 @@ export default function PacientesCadastradosCard({ onEditar }: Props) {
   const [busca, setBusca] = useState('');
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(false);
+  const [detalhes, setDetalhes] = useState<Paciente | null>(null);
 
   const carregar = useCallback(async () => {
     try {
@@ -97,6 +192,9 @@ export default function PacientesCadastradosCard({ onEditar }: Props) {
       </View>
 
       <View style={styles.cardFooter}>
+        <Pressable style={styles.footerBotao} onPress={() => setDetalhes(paciente)}>
+          <Text style={styles.footerBotaoTexto}>Ver mais</Text>
+        </Pressable>
         <Pressable style={styles.footerBotao} onPress={() => onEditar(paciente)}>
           <Text style={styles.footerBotaoTexto}>Editar</Text>
         </Pressable>
@@ -148,6 +246,7 @@ export default function PacientesCadastradosCard({ onEditar }: Props) {
           </Text>
         }
       />
+      <DetalhesPacienteModal paciente={detalhes} onFechar={() => setDetalhes(null)} />
     </View>
   );
 }
@@ -223,4 +322,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerBotaoTexto: { color: '#a755f7', fontSize: 12, fontWeight: '600' },
+  modalFundo: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalConteudo: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 20,
+    maxHeight: '88%',
+  },
+  modalCabecalho: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 12,
+  },
+  modalTitulo: { flex: 1, color: '#a755f7', fontSize: 20, fontWeight: 'bold' },
+  secao: { marginBottom: 20 },
+  secaoTitulo: { fontSize: 15, fontWeight: 'bold', marginBottom: 8, color: '#333' },
+  infoLinha: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingVertical: 6,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#e5e5e5',
+  },
+  infoRotulo: { color: '#666', flexShrink: 0 },
+  infoValor: { color: '#333', flex: 1, textAlign: 'right' },
 });
