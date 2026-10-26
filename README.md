@@ -25,11 +25,13 @@ Atualmente, muitos psicólogos enfrentam dificuldades na gestão de suas ativida
 
 **Agenda** (aba *Agenda*)
 - **Novo agendamento:** busca o paciente, escolhe data, horário e tipo (online ou presencial, com a localidade)
-- **Consultas agendadas:** lista com o status de cada consulta, **remarcar** (muda data, horário e local) e **cancelar** (muda o status para cancelado), ambos com confirmação ou aviso de sucesso e erro
+- **Consultas agendadas:** lista com o status de cada consulta, **remarcar** (muda data, horário e local) e **cancelar** (muda o status para cancelado), ambos com confirmação ou aviso de sucesso e erro, **confirmar** (confirma a consulta alterando o status), **realizar** (muda o status para realizada) e **pendente** (muda o status para pendente) 
+- Filtro dentro de **Consultas agendadas**: Filtra as consultas agendadas por **status** (todas, pendentes, confirmadas, remarcadas, realizadas e canceladas).
+
 
 **Início**
 
-- Boas-vindas e as **consultas do dia**, com paginação.
+- Boas-vindas, **últimos pacientes cadastrados** e as **consultas do dia**.
 
 ## Tecnologias
 
