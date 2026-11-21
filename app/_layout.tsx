@@ -6,6 +6,7 @@ import {
 
 import HeaderAutentication from '@/components/auth/headerAutentication';
 import { AuthProvider } from '@/contexts/auth-context';
+import { SyncContextProvider } from '@/contexts/sync-context';
 import { DATABASE_NAME, migrateDbIfNeeded } from '@/database/migrations';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Stack } from 'expo-router';
@@ -28,27 +29,29 @@ export default function RootLayout() {
         onInit={migrateDbIfNeeded}
       >
         <AuthProvider>
-          <ThemeProvider
-            value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
-          >
-            <Stack>
-              <Stack.Screen name="loginPage" options={{ header: () => <HeaderAutentication/> }} />
-              <Stack.Screen name="cadastroPage" options={{ header: () => <HeaderAutentication/> }} />
-              <Stack.Screen name="sobrePage" options={{ header: () => <HeaderAutentication/> }} />
-              <Stack.Screen name="contatoPage" options={{ header: () => <HeaderAutentication/> }} />
+          <SyncContextProvider>
+            <ThemeProvider
+              value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
+            >
+              <Stack>
+                <Stack.Screen name="loginPage" options={{ header: () => <HeaderAutentication/> }} />
+                <Stack.Screen name="cadastroPage" options={{ header: () => <HeaderAutentication/> }} />
+                <Stack.Screen name="sobrePage" options={{ header: () => <HeaderAutentication/> }} />
+                <Stack.Screen name="contatoPage" options={{ header: () => <HeaderAutentication/> }} />
 
-              <Stack.Screen
-                name="(tabs)"
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="modal"
-                options={{ presentation: 'modal', title: 'Modal' }}
-              />
-            </Stack>
+                <Stack.Screen
+                  name="(tabs)"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="modal"
+                  options={{ presentation: 'modal', title: 'Modal' }}
+                />
+              </Stack>
 
-            <StatusBar style="dark" />
-          </ThemeProvider>
+              <StatusBar style="dark" />
+            </ThemeProvider>
+          </SyncContextProvider>
         </AuthProvider>
       </SQLiteProvider>
     </SafeAreaProvider>
