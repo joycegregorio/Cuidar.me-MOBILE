@@ -40,7 +40,7 @@ export default function ConsultasAgendadasCard() {
   const db = useSQLiteContext();
   const [consultas, setConsultas] = useState<AgendamentoComPaciente[]>([]);
   
-  const [remarcandoConsultaId, setRemarcandoConsultaId] = useState<number | null>(null);
+  const [remarcandoConsultaId, setRemarcandoConsultaId] = useState<string | null>(null);
   const [filtrarStatus, setFiltrarStatus] = useState<FiltroPorStatus>('TODOS');
 
   const consultasFiltradas = useMemo(
@@ -62,7 +62,7 @@ export default function ConsultasAgendadasCard() {
     }, [carregar])
   );
 
-  const mudarStatus = async (id: number, status: StatusAgendamento, mensagem: string) => {
+  const mudarStatus = async (id: string, status: StatusAgendamento, mensagem: string) => {
     try {
       await atualizarStatusAgendamento(db, id, status);
       setConsultas((atuais) => atuais.map((c) => (c.id === id ? {...c, status} : c)));
@@ -73,20 +73,20 @@ export default function ConsultasAgendadasCard() {
     }
   };
 
-  const handleConfirmar = (id: number) => mudarStatus(id, 'CONFIRMADO', 'Consulta confirmada!');
+  const handleConfirmar = (id: string) => mudarStatus(id, 'CONFIRMADO', 'Consulta confirmada!');
 
-  const handleRealizada = (id: number) => Alert.alert('Consulta realizada', 'Marcar esta consulta como realizada?', [
+  const handleRealizada = (id: string) => Alert.alert('Consulta realizada', 'Marcar esta consulta como realizada?', [
     {text: 'Não', style: 'cancel'},
     {text: 'Sim', onPress: () => mudarStatus(id, 'REALIZADO', 'Consulta marcada como realizada!')},
   ])
 
-  const handleCancelarConsulta = (id: number) => Alert.alert('Cancelar consulta', 'Tem certeza que deseja cancelar esta consulta?', [
+  const handleCancelarConsulta = (id: string) => Alert.alert('Cancelar consulta', 'Tem certeza que deseja cancelar esta consulta?', [
     {text: 'Não', style: 'cancel'},
     {text: 'Sim, cancelar', style: 'destructive', onPress: () => mudarStatus(id, 'CANCELADO', 'Consulta cancelada com sucesso!')}
   ])
 
   const handleSalvarRemarcacao = async (
-    id: number,
+    id: string,
     novosDados: { data: string; horario: string; localidade: string }
   ) => {
     const consulta = consultas.find((c) => c.id === id);

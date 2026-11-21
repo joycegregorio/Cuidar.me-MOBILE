@@ -6,7 +6,7 @@ export type StatusAgendamento =
 | 'REMARCADO';
 
 export interface AgendamentoForm {
-  pacienteId: number;
+  pacienteId: string;
   data: string;
   horario: string;
   localidade: string;
@@ -14,13 +14,13 @@ export interface AgendamentoForm {
 }
 
 export interface Agendamento extends AgendamentoForm {
-  id: number;
+  id: string;
   criadoEm: string;
 }
 
 export interface AgendamentoComPaciente extends Agendamento {
   paciente: {
-    id: number;
+    id: string;
     nome: string;
   };
 }

@@ -1,8 +1,9 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import type { Paciente, PacienteForm } from '@/types/paciente';
+import * as Crypto from 'expo-crypto';
 
 interface PacienteRow {
-  id: number;
+  id: string;
   nome: string;
   cpf: string;
   rg: string;
@@ -109,35 +110,37 @@ export const pacienteRepository = {
     return rows.map(toPaciente);
   },
 
-  async buscarPorId(db: SQLiteDatabase, id: number): Promise<Paciente | null> {
+  async buscarPorId(db: SQLiteDatabase, id: string): Promise<Paciente | null> {
     const row = await db.getFirstAsync<PacienteRow>('SELECT * FROM paciente WHERE id = ?', id);
     return row ? toPaciente(row) : null;
   },
 
-  async cpfJaCadastrado(db: SQLiteDatabase, cpf: string, ignorarId?: number): Promise<boolean> {
-    const row = await db.getFirstAsync<{ id: number }>(
+  async cpfJaCadastrado(db: SQLiteDatabase, cpf: string, ignorarId?: string): Promise<boolean> {
+    const row = await db.getFirstAsync<{ id: string }>(
       'SELECT id FROM paciente WHERE cpf = ? AND id != ?',
       cpf,
-      ignorarId ?? -1,
+      ignorarId ?? '',
     );
     return row !== null;
   },
 
-  async inserir(db: SQLiteDatabase, dados: PacienteForm): Promise<number> {
-    const result = await db.runAsync(
-      `INSERT INTO paciente (${COLUNAS}, criado_em) VALUES (${'?, '.repeat(23)}?)`,
+  async inserir(db: SQLiteDatabase, dados: PacienteForm): Promise<string> {
+    const id = Crypto.randomUUID();
+    await db.runAsync(
+      `INSERT INTO paciente (id, ${COLUNAS}, criado_em) VALUES (${'?, '.repeat(24)}?)`,
+      id,
       ...toParams(dados),
       new Date().toISOString(),
     );
-    return result.lastInsertRowId;
+    return id;
   },
 
-  async atualizar(db: SQLiteDatabase, id: number, dados: PacienteForm): Promise<void> {
+  async atualizar(db: SQLiteDatabase, id: string, dados: PacienteForm): Promise<void> {
     const sets = COLUNAS.split(',').map((c) => `${c.trim()} = ?`).join(', ');
     await db.runAsync(`UPDATE paciente SET ${sets} WHERE id = ?`, ...toParams(dados), id);
   },
 
-  async remover(db: SQLiteDatabase, id: number): Promise<void> {
+  async remover(db: SQLiteDatabase, id: string): Promise<void> {
     await db.runAsync('DELETE FROM paciente WHERE id = ?', id);
   },
 };
