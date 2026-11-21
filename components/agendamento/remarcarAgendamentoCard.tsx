@@ -16,7 +16,7 @@ type Tipo = 'online' | 'presencial';
 
 type Props = {
   consulta: AgendamentoComPaciente | null;
-  onSalvar: (id: number, novosDados: { data: string; horario: string; localidade: string }) => void;
+  onSalvar: (id: string, novosDados: { data: string; horario: string; localidade: string }) => void;
   onCancelar: () => void;
 };
 

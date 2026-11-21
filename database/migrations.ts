@@ -2,12 +2,58 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 export const DATABASE_NAME = 'cuidarme.db';
 
-const DATABASE_VERSION = 5;
+const DATABASE_VERSION = 6;
 
 const CRIAR_AGENDAMENTO = `
   CREATE TABLE agendamento (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     paciente_id INTEGER NOT NULL,
+    data TEXT NOT NULL,
+    horario TEXT NOT NULL,
+    localidade TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('PENDENTE', 'CONFIRMADO', 'CANCELADO', 'REALIZADO', 'REMARCADO')),
+    criado_em TEXT NOT NULL,
+    FOREIGN KEY (paciente_id) REFERENCES paciente (id) ON DELETE CASCADE
+  );
+  CREATE INDEX idx_agendamento_paciente_id ON agendamento (paciente_id);
+  CREATE INDEX idx_agendamento_data ON agendamento (data);
+`;
+
+const CRIAR_PACIENTE_V6 = `
+  CREATE TABLE paciente (
+    id TEXT PRIMARY KEY NOT NULL,
+    nome TEXT NOT NULL,
+    cpf TEXT NOT NULL UNIQUE,
+    rg TEXT NOT NULL,
+    data_nascimento TEXT NOT NULL,
+    sexo TEXT NOT NULL,
+    estado_civil TEXT NOT NULL,
+    grau_instrucao TEXT NOT NULL,
+    profissao TEXT NOT NULL,
+    telefone TEXT NOT NULL,
+    cep_pessoal TEXT NOT NULL,
+    logradouro_pessoal TEXT NOT NULL,
+    numero_pessoal TEXT,
+    cidade_pessoal TEXT NOT NULL,
+    estado_pessoal TEXT NOT NULL,
+    cep_trabalho TEXT,
+    logradouro_trabalho TEXT,
+    numero_trabalho TEXT,
+    cidade_trabalho TEXT,
+    estado_trabalho TEXT,
+    nome_contato_emergencia TEXT,
+    telefone_contato_emergencia TEXT,
+    parentesco_contato_emergencia TEXT,
+    info_adicionais TEXT,
+    criado_em TEXT NOT NULL
+  );
+  CREATE INDEX idx_paciente_nome ON paciente (nome);
+`;
+
+const CRIAR_AGENDAMENTO_V6 = `
+  CREATE TABLE agendamento (
+    id TEXT PRIMARY KEY NOT NULL,
+    paciente_id TEXT NOT NULL,
     data TEXT NOT NULL,
     horario TEXT NOT NULL,
     localidade TEXT NOT NULL,
@@ -98,6 +144,15 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
         WHERE data LIKE '%T%';
       `);
     }
+  }
+
+  if (currentVersion < 6) {
+    await db.execAsync(`
+      DROP TABLE IF EXISTS agendamento;
+      DROP TABLE IF EXISTS paciente;
+      ${CRIAR_PACIENTE_V6}
+      ${CRIAR_AGENDAMENTO_V6}
+    `);
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);

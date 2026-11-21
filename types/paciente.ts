@@ -29,6 +29,6 @@ export interface PacienteForm {
 }
 
 export interface Paciente extends PacienteForm {
-  id: number;
+  id: string;
   criadoEm: string;
 }

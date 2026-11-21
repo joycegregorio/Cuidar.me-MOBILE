@@ -1,10 +1,11 @@
 import type { StatusAgendamento } from '@/types/agendamento';
 import { Agendamento, AgendamentoComPaciente, AgendamentoForm } from '@/types/agendamento';
 import type { SQLiteDatabase } from 'expo-sqlite';
+import * as Crypto from 'expo-crypto';
 
 interface AgendamentoRow {
-    id: number;
-    paciente_id: number;
+    id: string;
+    paciente_id: string;
     data: string;
     horario: string;
     localidade: string;
@@ -13,7 +14,7 @@ interface AgendamentoRow {
 }
 
 type AgendamentoRowWithPaciente = AgendamentoRow & {
-    paciente_id: number;
+    paciente_id: string;
     paciente_nome: string;
 };
 
@@ -46,12 +47,13 @@ function toAgendamentoComPaciente (row: AgendamentoRowWithPaciente): Agendamento
     };
 }
 
-export async function inserirAgendamento(db: SQLiteDatabase, dados: AgendamentoForm): Promise<number> {
-    const result = await db.runAsync(
-        'INSERT INTO agendamento (paciente_id, data, horario, localidade, status, criado_em) VALUES (?, ?, ?, ?, ?, ?)',
-        [dados.pacienteId, dados.data, dados.horario, dados.localidade, dados.status, new Date().toISOString()]
+export async function inserirAgendamento(db: SQLiteDatabase, dados: AgendamentoForm): Promise<string> {
+    const id = Crypto.randomUUID();
+    await db.runAsync(
+        'INSERT INTO agendamento (id, paciente_id, data, horario, localidade, status, criado_em) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [id, dados.pacienteId, dados.data, dados.horario, dados.localidade, dados.status, new Date().toISOString()]
     );
-    return result.lastInsertRowId;
+    return id;
 }
 
 export async function listarAgendamentos(db: SQLiteDatabase): Promise<AgendamentoComPaciente[]> {
@@ -59,7 +61,7 @@ export async function listarAgendamentos(db: SQLiteDatabase): Promise<Agendament
         `SELECT a.*, p.nome AS paciente_nome
          FROM agendamento a
          JOIN paciente p ON a.paciente_id = p.id
-         ORDER BY a.data DESC, a.horario DESC, a.id DESC
+         ORDER BY a.data DESC, a.horario DESC, a.criado_em DESC
         `);
     return rows.map(toAgendamentoComPaciente);
 }
@@ -76,14 +78,14 @@ export async function listarAgendamentosDoDia(db: SQLiteDatabase): Promise<Agend
     return rows.map(toAgendamentoComPaciente);
 }
 
-export async function atualizarStatusAgendamento(db: SQLiteDatabase, agendamentoId: number, novoStatus: StatusAgendamento): Promise<void> {
+export async function atualizarStatusAgendamento(db: SQLiteDatabase, agendamentoId: string, novoStatus: StatusAgendamento): Promise<void> {
     await db.runAsync(
         'UPDATE agendamento SET status = ? WHERE id = ?',
         [novoStatus, agendamentoId]
     );
 }
 
-export async function buscarAgendamentoPorId(db: SQLiteDatabase, agendamentoId: number): Promise<AgendamentoComPaciente | null> {
+export async function buscarAgendamentoPorId(db: SQLiteDatabase, agendamentoId: string): Promise<AgendamentoComPaciente | null> {
     const row = await db.getFirstAsync<AgendamentoRowWithPaciente>(
         `SELECT a.*, p.nome AS paciente_nome
          FROM agendamento a
@@ -95,14 +97,14 @@ export async function buscarAgendamentoPorId(db: SQLiteDatabase, agendamentoId: 
     return row ? toAgendamentoComPaciente(row) : null;
 }
 
-export async function deletarAgendamento(db: SQLiteDatabase, agendamentoId: number): Promise<void> {
+export async function deletarAgendamento(db: SQLiteDatabase, agendamentoId: string): Promise<void> {
     await db.runAsync(
         'DELETE FROM agendamento WHERE id = ?',
         [agendamentoId]
     );
 }
 
-export async function atualizarAgendamento(db: SQLiteDatabase, agendamentoId: number, dados: AgendamentoForm): Promise<void> {
+export async function atualizarAgendamento(db: SQLiteDatabase, agendamentoId: string, dados: AgendamentoForm): Promise<void> {
     await db.runAsync(
         'UPDATE agendamento SET paciente_id = ?, data = ?, horario = ?, localidade = ?, status = ? WHERE id = ?',
         [dados.pacienteId, dados.data, dados.horario, dados.localidade, dados.status, agendamentoId]
