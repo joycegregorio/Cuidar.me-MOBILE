@@ -14,19 +14,40 @@ function montarRequisicao(item: ItemFila): Requisicao {
     const corpo = item.payload ? JSON.parse(item.payload) : undefined;
 
     switch(`${item.entidade}:${item.operacao}`){
-        case 'atendimento:CRIAR':
+        case 'paciente:CRIAR': {
+            const { psicologoId, ...dados } = corpo;
             return {
                 metodo: 'POST',
-                caminho: `/pacientes/cadastrar-atendimentos/${corpo.pacienteId}`,
+                caminho: `/psicologos/cadastrar-pacientes/${psicologoId}`,
+                corpo: dados,
+            };
+        }
+        case 'paciente:ATUALIZAR':
+            return {
+                metodo: 'PATCH',
+                caminho: `/pacientes/atualizar/${item.entidadeId}`,
                 corpo,
             };
-         case 'atendimento:ATUALIZAR':
+        case 'paciente:EXCLUIR':
+            return {
+                metodo: 'DELETE',
+                caminho: `/pacientes/remover/${item.entidadeId}`,
+            };
+        case 'atendimento:CRIAR': {
+            const { pacienteId, ...dados } = corpo;
+            return {
+                metodo: 'POST',
+                caminho: `/pacientes/cadastrar-atendimentos/${pacienteId}`,
+                corpo: dados,
+            };
+        }
+        case 'atendimento:ATUALIZAR':
             return {
                 metodo: 'PATCH',
                 caminho: `/atendimentos/atualizar/${item.entidadeId}`,
                 corpo,
-            }; 
-            
+            };
+
         default:
             throw new Error(`Operação não suportada: ${item.entidade}:${item.operacao}`);
 
