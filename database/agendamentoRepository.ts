@@ -3,6 +3,8 @@ import { Agendamento, AgendamentoComPaciente, AgendamentoForm } from '@/types/ag
 import type { SQLiteDatabase } from 'expo-sqlite';
 import * as Crypto from 'expo-crypto';
 import { hojeISO } from '@/utils/data';
+import { filaRepository } from '@/database/filaRepository';
+import { agendamentoParaApi } from '@/services/mapeadoresApi';
 
 interface AgendamentoRow {
     id: string;
@@ -43,11 +45,23 @@ function toAgendamentoComPaciente (row: AgendamentoRowWithPaciente): Agendamento
 
 export async function inserirAgendamento(db: SQLiteDatabase, dados: AgendamentoForm): Promise<string> {
     const id = Crypto.randomUUID();
-    await db.runAsync(
-        'INSERT INTO agendamento (id, paciente_id, data, horario, localidade, status, criado_em) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [id, dados.pacienteId, dados.data, dados.horario, dados.localidade, dados.status, new Date().toISOString()]
-    );
+    await db.withTransactionAsync(async () => {
+        await db.runAsync(
+            'INSERT INTO agendamento (id, paciente_id, data, horario, localidade, status, criado_em) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [id, dados.pacienteId, dados.data, dados.horario, dados.localidade, dados.status, new Date().toISOString()]
+        );
+        await filaRepository.enfileirar(db, 'atendimento', 'CRIAR', id, {
+            pacienteId: dados.pacienteId,
+            ...agendamentoParaApi({ id, ...dados }),
+        });
+    });
     return id;
+}
+
+async function enfileirarAtualizacao(db: SQLiteDatabase, agendamentoId: string): Promise<void> {
+    const atual = await db.getFirstAsync<AgendamentoRow>('SELECT * FROM agendamento WHERE id = ?', [agendamentoId]);
+    if (!atual) return;
+    await filaRepository.enfileirar(db, 'atendimento', 'ATUALIZAR', agendamentoId, agendamentoParaApi(toAgendamento(atual)));
 }
 
 export async function listarAgendamentos(db: SQLiteDatabase): Promise<AgendamentoComPaciente[]> {
@@ -73,10 +87,13 @@ export async function listarAgendamentosDoDia(db: SQLiteDatabase): Promise<Agend
 }
 
 export async function atualizarStatusAgendamento(db: SQLiteDatabase, agendamentoId: string, novoStatus: StatusAgendamento): Promise<void> {
-    await db.runAsync(
-        'UPDATE agendamento SET status = ? WHERE id = ?',
-        [novoStatus, agendamentoId]
-    );
+    await db.withTransactionAsync(async () => {
+        await db.runAsync(
+            'UPDATE agendamento SET status = ? WHERE id = ?',
+            [novoStatus, agendamentoId]
+        );
+        await enfileirarAtualizacao(db, agendamentoId);
+    });
 }
 
 export async function buscarAgendamentoPorId(db: SQLiteDatabase, agendamentoId: string): Promise<AgendamentoComPaciente | null> {
@@ -91,17 +108,13 @@ export async function buscarAgendamentoPorId(db: SQLiteDatabase, agendamentoId: 
     return row ? toAgendamentoComPaciente(row) : null;
 }
 
-export async function deletarAgendamento(db: SQLiteDatabase, agendamentoId: string): Promise<void> {
-    await db.runAsync(
-        'DELETE FROM agendamento WHERE id = ?',
-        [agendamentoId]
-    );
-}
-
 export async function atualizarAgendamento(db: SQLiteDatabase, agendamentoId: string, dados: AgendamentoForm): Promise<void> {
-    await db.runAsync(
-        'UPDATE agendamento SET paciente_id = ?, data = ?, horario = ?, localidade = ?, status = ? WHERE id = ?',
-        [dados.pacienteId, dados.data, dados.horario, dados.localidade, dados.status, agendamentoId]
-    );
+    await db.withTransactionAsync(async () => {
+        await db.runAsync(
+            'UPDATE agendamento SET paciente_id = ?, data = ?, horario = ?, localidade = ?, status = ? WHERE id = ?',
+            [dados.pacienteId, dados.data, dados.horario, dados.localidade, dados.status, agendamentoId]
+        );
+        await enfileirarAtualizacao(db, agendamentoId);
+    });
 }
 
