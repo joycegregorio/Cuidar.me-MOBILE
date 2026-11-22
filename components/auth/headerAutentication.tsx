@@ -1,13 +1,15 @@
-import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
+import MaskedViewOriginal from '@react-native-masked-view/masked-view';
 import { router } from 'expo-router';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ComponentType, ReactElement } from 'react';
+import { Image, Pressable, StyleSheet, Text, View, ViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const logonome = require('../../assets/images/logonome.png');
 
 const CORES_GRADIENTE = ['#1f1f8b', '#A259FF', '#F76FFF', '#FF8A00'] as const;
 
+const MaskedView = MaskedViewOriginal as unknown as ComponentType<ViewProps & { maskElement: ReactElement}>;
 export default function HeaderAutentication() {
   const insets = useSafeAreaInsets();
 

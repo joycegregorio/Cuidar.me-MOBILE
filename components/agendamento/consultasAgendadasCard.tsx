@@ -222,6 +222,7 @@ export default function ConsultasAgendadasCard() {
       />
 
       <RemarcarAgendamentoCard
+        key={consultaRemarcando?.id ?? 'nenhuma'}
         consulta={consultaRemarcando}
         onSalvar={handleSalvarRemarcacao}
         onCancelar={() => setRemarcandoConsultaId(null)}
