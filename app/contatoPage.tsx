@@ -1,4 +1,4 @@
--import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 const CONTATOS = [
