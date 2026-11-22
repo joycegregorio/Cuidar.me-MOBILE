@@ -2,6 +2,9 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import type { Paciente, PacienteForm } from '@/types/paciente';
 import * as Crypto from 'expo-crypto';
 
+import { filaRepository } from '@/database/filaRepository';
+import { pacienteParaApi } from '@/services/mapeadoresApi';
+
 interface PacienteRow {
   id: string;
   nome: string;
@@ -124,23 +127,35 @@ export const pacienteRepository = {
     return row !== null;
   },
 
-  async inserir(db: SQLiteDatabase, dados: PacienteForm): Promise<string> {
+  async inserir(db: SQLiteDatabase, psicologoId: string, dados: PacienteForm): Promise<string> {
     const id = Crypto.randomUUID();
-    await db.runAsync(
-      `INSERT INTO paciente (id, ${COLUNAS}, criado_em) VALUES (${'?, '.repeat(24)}?)`,
-      id,
-      ...toParams(dados),
-      new Date().toISOString(),
-    );
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(
+        `INSERT INTO paciente (id, ${COLUNAS}, criado_em) VALUES (${'?, '.repeat(24)}?)`,
+        id,
+        ...toParams(dados),
+        new Date().toISOString(),
+      );
+      await filaRepository.enfileirar(db, 'paciente', 'CRIAR', id, {
+        psicologoId,
+        ...pacienteParaApi(id, dados),
+      });
+    });
     return id;
   },
 
   async atualizar(db: SQLiteDatabase, id: string, dados: PacienteForm): Promise<void> {
     const sets = COLUNAS.split(',').map((c) => `${c.trim()} = ?`).join(', ');
-    await db.runAsync(`UPDATE paciente SET ${sets} WHERE id = ?`, ...toParams(dados), id);
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(`UPDATE paciente SET ${sets} WHERE id = ?`, ...toParams(dados), id);
+      await filaRepository.enfileirar(db, 'paciente', 'ATUALIZAR', id, pacienteParaApi(id, dados));
+    });
   },
 
   async remover(db: SQLiteDatabase, id: string): Promise<void> {
-    await db.runAsync('DELETE FROM paciente WHERE id = ?', id);
+    await db.withTransactionAsync(async () => {
+      await db.runAsync('DELETE FROM paciente WHERE id = ?', id);
+      await filaRepository.enfileirar(db, 'paciente', 'EXCLUIR', id);
+    });
   },
 };

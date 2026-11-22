@@ -14,6 +14,7 @@ import {
   type TextInputProps,
 } from 'react-native';
 
+import { useAuth } from '@/contexts/auth-context';
 import { pacienteRepository } from '@/database/pacienteRepository';
 import type { Endereco, Paciente, PacienteForm as DadosPaciente } from '@/types/paciente';
 import {
@@ -157,6 +158,7 @@ function Selecao({ rotulo, placeholder, opcoes, valor, onChange, erro }: Selecao
 
 export default function PacienteForm({ paciente, onSalvo, onCancelar }: Props) {
   const db = useSQLiteContext();
+  const { psicologo } = useAuth();
   const editando = !!paciente;
 
   const [form, setForm] = useState<DadosPaciente>(() => {
@@ -216,7 +218,8 @@ export default function PacienteForm({ paciente, onSalvo, onCancelar }: Props) {
       };
 
       if (paciente) await pacienteRepository.atualizar(db, paciente.id, dados);
-      else await pacienteRepository.inserir(db, dados);
+      else if (psicologo) await pacienteRepository.inserir(db, psicologo.id, dados);
+      else throw new Error('Sessão expirada: nenhum psicólogo logado.');
 
       if (!paciente) {
         setForm(formVazio);
