@@ -1,9 +1,15 @@
-export type StatusAgendamento = 
-| 'PENDENTE' 
-| 'CONFIRMADO' 
-| 'CANCELADO' 
-| 'REALIZADO' 
+export type StatusAgendamento =
+| 'AGENDADO'
+| 'CONCLUIDO'
+| 'CANCELADO'
 | 'REMARCADO';
+
+export const STATUS_TEXTO: Record<StatusAgendamento, string> = {
+  AGENDADO: 'Agendada',
+  CONCLUIDO: 'Concluída',
+  CANCELADO: 'Cancelada',
+  REMARCADO: 'Remarcada',
+};
 
 export interface AgendamentoForm {
   pacienteId: string;

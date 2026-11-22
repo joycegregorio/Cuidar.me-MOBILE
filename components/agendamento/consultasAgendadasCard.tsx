@@ -10,13 +10,12 @@ import {
   atualizarStatusAgendamento,
   listarAgendamentos,
 } from '@/database/agendamentoRepository';
-import type { AgendamentoComPaciente, StatusAgendamento } from '@/types/agendamento';
+import { STATUS_TEXTO, type AgendamentoComPaciente, type StatusAgendamento } from '@/types/agendamento';
 
 const STATUS_LABELS: Record<StatusAgendamento, { fundo: string; texto: string }> = {
-  PENDENTE: { fundo: '#FEF3C7', texto: '#92400E' },
-  CONFIRMADO: { fundo: '#DCFCE7', texto: '#166534' },
+  AGENDADO: { fundo: '#FEF3C7', texto: '#92400E' },
+  CONCLUIDO: { fundo: '#DBEAFE', texto: '#1E40AF' },
   CANCELADO: { fundo: '#FEE2E2', texto: '#991B1B' },
-  REALIZADO: { fundo: '#DBEAFE', texto: '#1E40AF' },
   REMARCADO: { fundo: '#F3E8FF', texto: '#6B21A8' },
 };
 
@@ -24,11 +23,10 @@ type FiltroPorStatus = StatusAgendamento | 'TODOS';
 
 const FILTROS: {valor: FiltroPorStatus; label: string} [] = [
   {valor: 'TODOS', label: 'Todas'},
-  {valor: 'PENDENTE', label: 'Pendentes'},
-  {valor: 'CANCELADO', label: 'Canceladas'},
+  {valor: 'AGENDADO', label: 'Agendadas'},
   {valor: 'REMARCADO', label: 'Remarcadas'},
-  {valor: 'REALIZADO', label: 'Realizadas'},
-  {valor: 'CONFIRMADO', label: 'Confirmadas'},
+  {valor: 'CONCLUIDO', label: 'Concluídas'},
+  {valor: 'CANCELADO', label: 'Canceladas'},
 ];
 
 const formatarData = (data: string) => {
@@ -73,11 +71,9 @@ export default function ConsultasAgendadasCard() {
     }
   };
 
-  const handleConfirmar = (id: string) => mudarStatus(id, 'CONFIRMADO', 'Consulta confirmada!');
-
-  const handleRealizada = (id: string) => Alert.alert('Consulta realizada', 'Marcar esta consulta como realizada?', [
+  const handleConcluir = (id: string) => Alert.alert('Consulta concluída', 'Marcar esta consulta como concluída?', [
     {text: 'Não', style: 'cancel'},
-    {text: 'Sim', onPress: () => mudarStatus(id, 'REALIZADO', 'Consulta marcada como realizada!')},
+    {text: 'Sim', onPress: () => mudarStatus(id, 'CONCLUIDO', 'Consulta marcada como concluída!')},
   ])
 
   const handleCancelarConsulta = (id: string) => Alert.alert('Cancelar consulta', 'Tem certeza que deseja cancelar esta consulta?', [
@@ -111,8 +107,8 @@ export default function ConsultasAgendadasCard() {
 
   const renderConsulta = ({ item: consulta }: { item: AgendamentoComPaciente }) => {
     const online = consulta.localidade === 'Online';
-    const cor = STATUS_LABELS[consulta.status] ?? STATUS_LABELS.PENDENTE;
-    const encerrada = consulta.status === 'CANCELADO' || consulta.status === 'REALIZADO';
+    const cor = STATUS_LABELS[consulta.status] ?? STATUS_LABELS.AGENDADO;
+    const encerrada = consulta.status === 'CANCELADO' || consulta.status === 'CONCLUIDO';
 
     return (
       <View style={styles.card}>
@@ -121,7 +117,7 @@ export default function ConsultasAgendadasCard() {
             {consulta.paciente ? consulta.paciente.nome : 'Paciente não encontrado'}
           </Text>
           <View style={[styles.statusBadge, { backgroundColor: cor.fundo }]}>
-            <Text style={[styles.statusTexto, { color: cor.texto }]}>{consulta.status}</Text>
+            <Text style={[styles.statusTexto, { color: cor.texto }]}>{STATUS_TEXTO[consulta.status] ?? consulta.status}</Text>
           </View>
         </View>
 
@@ -145,23 +141,12 @@ export default function ConsultasAgendadasCard() {
 
         {!encerrada && (
           <View style={styles.cardFooter}>
-            {(consulta.status === 'PENDENTE' || consulta.status === 'REMARCADO') && (
-              <Pressable
-                style={[styles.footerBotao, styles.footerBotaoPrimario, styles.footerBotaoCheio]}
-                onPress={() => handleConfirmar(consulta.id)}
-              >
-                <Text style={[styles.footerBotaoTexto, styles.footerBotaoTextoPrimario]}>Confirmar</Text>
-              </Pressable>
-            )}
-
-            {consulta.status === 'CONFIRMADO' && (
-              <Pressable
-                style={[styles.footerBotao, styles.footerBotaoPrimario, styles.footerBotaoCheio]}
-                onPress={() => handleRealizada(consulta.id)}
-              >
-                <Text style={[styles.footerBotaoTexto, styles.footerBotaoTextoPrimario]}>Marcar como realizada</Text>
-              </Pressable>
-            )}
+            <Pressable
+              style={[styles.footerBotao, styles.footerBotaoPrimario, styles.footerBotaoCheio]}
+              onPress={() => handleConcluir(consulta.id)}
+            >
+              <Text style={[styles.footerBotaoTexto, styles.footerBotaoTextoPrimario]}>Marcar como concluída</Text>
+            </Pressable>
 
             <Pressable style={styles.footerBotao} onPress={() => setRemarcandoConsultaId(consulta.id)}>
               <Text style={styles.footerBotaoTexto}>Remarcar</Text>

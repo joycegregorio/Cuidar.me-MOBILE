@@ -15,6 +15,14 @@ export function somarDias(dataISO: string, dias: number): string {
     return formatar(data);
 }
 
+export function juntarDataHorario(data: string, horario: string): string {
+    return `${data}T${horario}:00`;
+}
+
+export function separarDataHorario(dataHora: string): { data: string; horario: string } {
+    return { data: dataHora.slice(0, 10), horario: dataHora.slice(11, 16) };
+}
+
 export function formatarDiaMes(dataISO: string): string {
     const [, mes, dia] = dataISO.split('-');
     return `${dia}/${mes}`;

@@ -65,7 +65,7 @@ export async function listarAgendamentosDoDia(db: SQLiteDatabase): Promise<Agend
         `SELECT a.*, p.nome AS paciente_nome
         FROM agendamento a
         JOIN paciente p ON a.paciente_id = p.id
-        WHERE a.data = ? AND a.status IN ('PENDENTE', 'CONFIRMADO', 'REMARCADO')
+        WHERE a.data = ? AND a.status IN ('AGENDADO', 'REMARCADO')
         ORDER BY a.horario`,
         [hojeISO()],
     )
