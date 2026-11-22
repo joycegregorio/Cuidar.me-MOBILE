@@ -1,11 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+-import { Ionicons } from '@expo/vector-icons';
+import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 const CONTATOS = [
   {
     nome: 'Jhennifer Kelly Nicolau da Cunha',
     email: 'jhenniferkelly@gmail.com',
-    telefone: '(83) 91234-5678',
+    telefone: '(83) 99929-8063',
   },
   {
     nome: 'Joyce Gregório da Silva',
@@ -13,6 +13,17 @@ const CONTATOS = [
     telefone: '(83) 98765-4321',
   },
 ];
+
+const linkWhatsApp = (telefone: string) =>
+  `https://wa.me/55${telefone.replace(/\D/g, '')}`;
+
+async function abrirLink(url: string) {
+  try {
+    await Linking.openURL(url);
+  } catch {
+    Alert.alert('Não foi possível abrir', 'Verifique se há um aplicativo instalado para abrir este link.');
+  }
+}
 
 export default function Contato() {
   return (
@@ -24,15 +35,25 @@ export default function Contato() {
         <View key={contato.email} style={styles.bloco}>
           <Text style={styles.nome}>{contato.nome}</Text>
 
-          <View style={styles.linha}>
+          <Pressable
+            style={styles.linha}
+            onPress={() => abrirLink(`mailto:${contato.email}`)}
+            accessibilityRole="link"
+            accessibilityLabel={`Enviar e-mail para ${contato.nome}`}
+          >
             <Ionicons name="mail" size={20} color="#a755f7" />
-            <Text style={styles.info}>{contato.email}</Text>
-          </View>
+            <Text style={styles.link}>{contato.email}</Text>
+          </Pressable>
 
-          <View style={styles.linha}>
-            <Ionicons name="call" size={20} color="#a755f7" />
-            <Text style={styles.info}>{contato.telefone}</Text>
-          </View>
+          <Pressable
+            style={styles.linha}
+            onPress={() => abrirLink(linkWhatsApp(contato.telefone))}
+            accessibilityRole="link"
+            accessibilityLabel={`Conversar com ${contato.nome} no WhatsApp`}
+          >
+            <Ionicons name="logo-whatsapp" size={20} color="#a755f7" />
+            <Text style={styles.link}>{contato.telefone}</Text>
+          </Pressable>
         </View>
       ))}
     </View>
@@ -66,8 +87,9 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 4,
   },
-  info: {
-    color: '#1f1f1f',
+  link: {
+    color: '#5b00d2',
     fontSize: 16,
+    textDecorationLine: 'underline',
   },
 });
