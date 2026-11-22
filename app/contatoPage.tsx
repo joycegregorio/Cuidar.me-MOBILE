@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 const CONTATOS = [
   {
@@ -18,15 +17,6 @@ const CONTATOS = [
 export default function Contato() {
   return (
     <View style={styles.container}>
-      <Pressable
-        style={styles.botaoVoltar}
-        onPress={() => router.back()}
-        accessibilityRole="button"
-        accessibilityLabel="Voltar para o login"
-        hitSlop={8}
-      >
-        <Ionicons name="arrow-back" size={20} color="#a755f7" />
-      </Pressable>
 
       <Text style={styles.title}>Contatos</Text>
 
@@ -55,11 +45,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     backgroundColor: '#ffffff',
-  },
-  botaoVoltar: {
-    alignSelf: 'flex-start',
-    padding: 2,
-    marginBottom: 4,
   },
   title: {
     color: '#a755f7',

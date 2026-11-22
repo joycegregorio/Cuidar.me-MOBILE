@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 const FUNCIONALIDADES = [
   { icone: 'document-text-outline', texto: 'Organização de prontuários' },
@@ -23,15 +22,6 @@ export default function Sobre() {
         contentContainerStyle={styles.conteudo}
         showsVerticalScrollIndicator={false}
       >
-        <Pressable
-          style={styles.botaoVoltar}
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar para o login"
-          hitSlop={8}
-        >
-          <Ionicons name="arrow-back" size={20} color="#ffffff" />
-        </Pressable>
 
         <Text style={styles.titulo}>Sobre o Cuidar.me</Text>
 
@@ -75,11 +65,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 32,
-  },
-  botaoVoltar: {
-    alignSelf: 'flex-start',
-    padding: 2,
-    marginBottom: 8,
   },
   titulo: {
     color: '#ffffff',
