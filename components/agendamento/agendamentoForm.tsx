@@ -93,7 +93,7 @@ export default function AgendamentoForm({ onSalvo }: Props) {
         data: formatarDataISO(data),
         horario,
         localidade: tipo === 'presencial' ? localidade : 'Online',
-        status: 'PENDENTE',
+        status: 'AGENDADO',
       });
 
       Alert.alert(

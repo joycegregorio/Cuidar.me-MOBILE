@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 export const DATABASE_NAME = 'cuidarme.db';
 
-const DATABASE_VERSION = 9;
+const DATABASE_VERSION = 10;
 
 const CRIAR_AGENDAMENTO = `
   CREATE TABLE agendamento (
@@ -85,6 +85,19 @@ const CRIAR_ANOTACAO_V8 = `
     texto TEXT NOT NULL,
     atualizado_em TEXT NOT NULL,
     PRIMARY KEY (psicologo_id, data)
+  );
+`;
+
+const criarAgendamentoV10 = (tabela: string) => `
+  CREATE TABLE ${tabela} (
+    id TEXT PRIMARY KEY NOT NULL,
+    paciente_id TEXT NOT NULL,
+    data TEXT NOT NULL,
+    horario TEXT NOT NULL,
+    localidade TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('AGENDADO', 'CONCLUIDO', 'CANCELADO', 'REMARCADO')),
+    criado_em TEXT NOT NULL,
+    FOREIGN KEY (paciente_id) REFERENCES paciente (id) ON DELETE CASCADE
   );
 `;
 
@@ -188,6 +201,28 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
 
   if (currentVersion < 9) {
     await db.execAsync('DROP TABLE IF EXISTS psicologo');
+  }
+
+  if (currentVersion < 10) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(`
+        ${criarAgendamentoV10('agendamento_v10')}
+        INSERT INTO agendamento_v10 (id, paciente_id, data, horario, localidade, status, criado_em)
+          SELECT id, paciente_id, data, horario, localidade,
+            CASE status
+              WHEN 'PENDENTE' THEN 'AGENDADO'
+              WHEN 'CONFIRMADO' THEN 'AGENDADO'
+              WHEN 'REALIZADO' THEN 'CONCLUIDO'
+              ELSE status
+            END,
+            criado_em
+          FROM agendamento;
+        DROP TABLE agendamento;
+        ALTER TABLE agendamento_v10 RENAME TO agendamento;
+        CREATE INDEX idx_agendamento_paciente_id ON agendamento (paciente_id);
+        CREATE INDEX idx_agendamento_data ON agendamento (data);
+      `);
+    });
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
