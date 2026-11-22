@@ -10,8 +10,7 @@ export interface LoginForm {
 }
 
 export interface Psicologo {
-  id: number;
+  id: string;
   nome: string;
   email: string;
-  criadoEm: string;
 }

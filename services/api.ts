@@ -1,9 +1,5 @@
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-if(!API_URL){
-    throw new Error('A variável de ambiente EXPO_PUBLIC_API_URL não está definida.');
-}
-
 const TEMPO_LIMITE_MS = 10000;
 
 interface ProblemDetail {
@@ -29,6 +25,10 @@ export class ApiError extends Error {
 }
 
 export async function requisicaoApi<T>(metodo: string, caminho: string, corpo?: unknown): Promise<T> {
+    if(!API_URL){
+        throw new Error('A variável de ambiente EXPO_PUBLIC_API_URL não está definida. Crie o arquivo .env a partir do .env.example.');
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TEMPO_LIMITE_MS);
 

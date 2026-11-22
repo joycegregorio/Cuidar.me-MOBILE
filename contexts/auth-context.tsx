@@ -1,7 +1,7 @@
 import { useSQLiteContext } from 'expo-sqlite';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
-import { psicologoRepository } from '@/database/psicologoRepository';
+import { limparDadosLocais } from '@/database/dadosLocais';
 import { autenticarPsicologo, cadastrarPsicologo } from '@/services/authService';
 import { limparSessao, lerSessao, salvarSessao } from '@/services/sessao';
 import type { LoginForm, Psicologo, PsicologoCadastroForm } from '@/types/psicologo';
@@ -25,10 +25,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let ativo = true;
     (async () => {
       try {
-        const id = await lerSessao();
-        const encontrado = id === null ? null : await psicologoRepository.buscarPorId(db, id);
-        if (id !== null && !encontrado) await limparSessao();
-        if (ativo) setPsicologo(encontrado);
+        const salvo = await lerSessao();
+        if (ativo) setPsicologo(salvo);
       } catch {
         if (ativo) setPsicologo(null);
       } finally {
@@ -38,21 +36,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       ativo = false;
     };
-  }, [db]);
+  }, []);
 
   const cadastrar = async (form: PsicologoCadastroForm) => {
-    const novo = await cadastrarPsicologo(db, form);
-    await salvarSessao(novo.id);
+    const novo = await cadastrarPsicologo(form);
+    await salvarSessao(novo);
     setPsicologo(novo);
   };
 
   const entrar = async (form: LoginForm) => {
-    const logado = await autenticarPsicologo(db, form);
-    await salvarSessao(logado.id);
+    const logado = await autenticarPsicologo(form);
+    await salvarSessao(logado);
     setPsicologo(logado);
   };
 
   const sair = async () => {
+    await limparDadosLocais(db);
     await limparSessao();
     setPsicologo(null);
   };
