@@ -1,8 +1,5 @@
-import type { SQLiteDatabase } from 'expo-sqlite';
-
-import { psicologoRepository } from '@/database/psicologoRepository';
+import { ApiError, requisicaoApi } from '@/services/api';
 import type { LoginForm, Psicologo, PsicologoCadastroForm } from '@/types/psicologo';
-import { gerarHash, gerarSalt, verificarSenha } from '@/utils/senha';
 import { validarCadastro, validarLogin } from '@/utils/validacaoPsicologo';
 
 export class AuthError extends Error {
@@ -15,55 +12,58 @@ export class AuthError extends Error {
   }
 }
 
+interface PsicologoResposta {
+  lookupId: string;
+  nome: string;
+  email: string;
+}
+
 const MENSAGEM_LOGIN_INVALIDO = 'E-mail ou senha inválidos.';
 const MENSAGEM_EMAIL_DUPLICADO = 'Já existe um profissional cadastrado com este e-mail.';
-
-const SALT_FALSO = '0'.repeat(32);
+const MENSAGEM_SEM_CONEXAO = 'Sem conexão com o servidor. É preciso estar conectado à internet para entrar ou se cadastrar.';
 
 const normalizarEmail = (email: string) => email.trim().toLowerCase();
 
-export async function cadastrarPsicologo(db: SQLiteDatabase, form: PsicologoCadastroForm): Promise<Psicologo> {
+const toPsicologo = (r: PsicologoResposta): Psicologo => ({ id: r.lookupId, nome: r.nome, email: r.email });
+
+function traduzirErro(error: unknown, mensagens: { 401?: string; 409?: string }): never {
+  if (!(error instanceof ApiError)) throw error;
+
+  if (error.status === 0) throw new AuthError(MENSAGEM_SEM_CONEXAO);
+  if (error.status === 401 && mensagens[401]) throw new AuthError(mensagens[401]);
+  if (error.status === 409 && mensagens[409]) {
+    throw new AuthError(mensagens[409], { email: mensagens[409] });
+  }
+  if (error.status === 400) {
+    throw new AuthError('Corrija os campos destacados.', error.erros);
+  }
+  throw new AuthError('O servidor está com problemas. Tente novamente em instantes.');
+}
+
+export async function cadastrarPsicologo(form: PsicologoCadastroForm): Promise<Psicologo> {
   const dados = { nome: form.nome.trim(), email: normalizarEmail(form.email), senha: form.senha };
 
   const erros = validarCadastro(dados);
   if (Object.keys(erros).length > 0) throw new AuthError('Corrija os campos destacados.', erros);
 
-  if (await psicologoRepository.emailJaCadastrado(db, dados.email)) {
-    throw new AuthError(MENSAGEM_EMAIL_DUPLICADO, { email: MENSAGEM_EMAIL_DUPLICADO });
-  }
-
-  const senhaSalt = await gerarSalt();
-  const senhaHash = await gerarHash(dados.senha, senhaSalt);
-
-  let id: number;
   try {
-    id = await psicologoRepository.inserir(db, { nome: dados.nome, email: dados.email, senhaHash, senhaSalt });
-  } catch (e) {
-    if (e instanceof Error && /UNIQUE/i.test(e.message)) {
-      throw new AuthError(MENSAGEM_EMAIL_DUPLICADO, { email: MENSAGEM_EMAIL_DUPLICADO });
-    }
-    throw e;
+    const resposta = await requisicaoApi<PsicologoResposta>('POST', '/psicologos/cadastrar', dados);
+    return toPsicologo(resposta);
+  } catch (error) {
+    traduzirErro(error, { 409: MENSAGEM_EMAIL_DUPLICADO });
   }
-
-  const psicologo = await psicologoRepository.buscarPorId(db, id);
-  if (!psicologo) throw new Error('Profissional não encontrado após o cadastro.');
-  return psicologo;
 }
 
-export async function autenticarPsicologo(db: SQLiteDatabase, form: LoginForm): Promise<Psicologo> {
+export async function autenticarPsicologo(form: LoginForm): Promise<Psicologo> {
   const dados = { email: normalizarEmail(form.email), senha: form.senha };
 
   const erros = validarLogin(dados);
   if (Object.keys(erros).length > 0) throw new AuthError('Preencha e-mail e senha.', erros);
 
-  const credenciais = await psicologoRepository.buscarCredenciaisPorEmail(db, dados.email);
-  if (!credenciais) {
-    await gerarHash(dados.senha, SALT_FALSO);
-    throw new AuthError(MENSAGEM_LOGIN_INVALIDO);
+  try {
+    const resposta = await requisicaoApi<PsicologoResposta>('POST', '/psicologos/login', dados);
+    return toPsicologo(resposta);
+  } catch (error) {
+    traduzirErro(error, { 401: MENSAGEM_LOGIN_INVALIDO });
   }
-
-  const senhaCorreta = await verificarSenha(dados.senha, credenciais.senhaSalt, credenciais.senhaHash);
-  if (!senhaCorreta) throw new AuthError(MENSAGEM_LOGIN_INVALIDO);
-
-  return credenciais.psicologo;
 }

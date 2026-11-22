@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
 import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/contexts/auth-context';
+import { filaRepository } from '@/database/filaRepository';
 
 const logonome = require('../../assets/images/logonome.png');
 
@@ -11,9 +13,16 @@ export default function Header() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { sair } = useAuth();
+  const db = useSQLiteContext();
 
-  const handleLogout = () => {
-    Alert.alert('Sair', 'Deseja realmente sair?', [
+  const handleLogout = async () => {
+    const pendentes = await filaRepository.contarPendentes(db);
+    const mensagem = pendentes > 0
+      ? `Há ${pendentes} ${pendentes === 1 ? 'alteração que ainda não foi enviada' : 'alterações que ainda não foram enviadas'} ao servidor. `
+        + 'Se sair agora, elas serão perdidas. Deseja sair mesmo assim?'
+      : 'Deseja realmente sair?';
+
+    Alert.alert('Sair', mensagem, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Sair',

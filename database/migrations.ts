@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 export const DATABASE_NAME = 'cuidarme.db';
 
-const DATABASE_VERSION = 7;
+const DATABASE_VERSION = 8;
 
 const CRIAR_AGENDAMENTO = `
   CREATE TABLE agendamento (
@@ -170,6 +170,10 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
   
   if (currentVersion <  7) {
     await db.execAsync(CRIAR_FILA_V7);
+  }
+
+  if (currentVersion < 8) {
+    await db.execAsync('DROP TABLE IF EXISTS psicologo');
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
