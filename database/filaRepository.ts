@@ -45,7 +45,16 @@ export const filaRepository = {
 
     async proximoPendente(db: SQLiteDatabase): Promise<ItemFila | null> {
         const row = await db.getFirstAsync<FilaRow>(
-            'SELECT * FROM fila_sincronizacao WHERE erro IS NULL ORDER BY id LIMIT 1',
+            `SELECT * FROM fila_sincronizacao f
+             WHERE f.erro IS NULL
+               AND NOT EXISTS (
+                 SELECT 1 FROM fila_sincronizacao e
+                 WHERE e.id < f.id
+                   AND (e.entidade_id = f.entidade_id
+                        OR (f.entidade = 'atendimento' AND e.entidade = 'paciente'
+                            AND e.entidade_id = json_extract(f.payload, '$.pacienteId')))
+               )
+             ORDER BY f.id LIMIT 1`,
         );
         return row ? toFilaItem(row) : null;
     },
