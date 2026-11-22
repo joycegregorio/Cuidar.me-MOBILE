@@ -5,9 +5,10 @@ import { AgendamentoComPaciente } from '@/types/agendamento';
 import { formatarDiaMes, hojeISO, somarDias } from '@/utils/data';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
+import { useHeaderHeight } from 'expo-router/react-navigation';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useCallback, useEffect, useState, useRef } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, KeyboardAvoidingView, ScrollViewInstance } from 'react-native';
 
 const MAX_VISIVEIS = 3;
 
@@ -20,6 +21,9 @@ export default function HomeScreen() {
   const [dataAnotacao, setDataAnotacao] = useState(hojeISO());
   const [texto, setTexto] = useState('');
   const [situacao, setSituacao] = useState<'carregando' | 'salvando' | 'salvo'>('carregando');
+
+  const alturaCabecalho = useHeaderHeight();
+  const scrollRef = useRef<ScrollViewInstance>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -77,81 +81,92 @@ export default function HomeScreen() {
       style={styles.container}
     >
 
-      <ScrollView style={styles.conteudo} keyboardShouldPersistTaps="handled">
-          <View style={styles.boasVindas}>
-            <Text style={styles.titulo}>
-              Bem-vindo(a)!
-            </Text>
-            <Text style={styles.subtitulo}>
-              Veja suas informações.
-            </Text>
-          </View>
-
-        <View style={styles.cards}>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>
-              Consultas do dia
-            </Text>
-            {consultas.length === 0 && (
-              <Text style={styles.cardSubtitle}>
-                Nenhuma consulta para hoje.
+      <KeyboardAvoidingView
+        behavior='padding'
+        keyboardVerticalOffset={alturaCabecalho}
+        style={{flex: 1}}
+      >
+        <ScrollView 
+          ref={scrollRef}
+          style={styles.conteudo} 
+          keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.boasVindas}>
+              <Text style={styles.titulo}>
+                Bem-vindo(a)!
               </Text>
-            )}
-
-            {consultasVisiveis.map((c) => (
-              <View key={c.id} style={styles.itemLinha}>
-                <Text style={styles.itemHorario}>{c.horario}</Text>
-                <Text style={styles.itemNome} numberOfLines={1}>{c.paciente.nome}</Text>
-              </View>
-            ))}
-
-            {temMaisConsultas && (
-              <Pressable onPress={() => router.push('/(tabs)/agendamento/agendamentoPage')} hitSlop={8}>
-                <Text style={styles.verMais}>Ver mais...</Text>
-              </Pressable>
-            )}
-          </View>
-  
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>
-              Anotações
-            </Text>
-
-            <View style={styles.linhaData}>
-              <Pressable onPress={() => mudarDia(-1)} hitSlop={12}>
-                <Text style={styles.seta}>‹</Text>
-              </Pressable>
-
-              <Text style={styles.textoData}>
-                {ehHoje ? 'Hoje' : formatarDiaMes(dataAnotacao)}
+              <Text style={styles.subtitulo}>
+                Veja suas informações.
               </Text>
-
-              <Pressable onPress={() => mudarDia(1)}  disabled={ehHoje} hitSlop={12}>
-                <Text style={[styles.seta, ehHoje && styles.setaDesabilitada]}>›</Text>
-              </Pressable>
             </View>
-          
 
-            <TextInput
-              style={styles.campoAnotacao}
-              multiline
-              maxLength={1000}
-              placeholder="Digite suas anotações do dia aqui..."
-              placeholderTextColor="#9b8bc4"
-              value={texto}
-              editable={situacao !== 'carregando'}
-              onChangeText={(t) => {
-                setTexto(t);
-                setSituacao('salvando');
-              }}
-            />
+          <View style={styles.cards}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>
+                Consultas do dia
+              </Text>
+              {consultas.length === 0 && (
+                <Text style={styles.cardSubtitle}>
+                  Nenhuma consulta para hoje.
+                </Text>
+              )}
 
-            <Text style={styles.situacaoSalvamento}>
-              {situacao === 'salvando' ? 'Salvando...' : situacao === 'salvo' ? ' ' : ''}
-            </Text>
-          </View> 
-        </View>
-      </ScrollView>
+              {consultasVisiveis.map((c) => (
+                <View key={c.id} style={styles.itemLinha}>
+                  <Text style={styles.itemHorario}>{c.horario}</Text>
+                  <Text style={styles.itemNome} numberOfLines={1}>{c.paciente.nome}</Text>
+                </View>
+              ))}
+
+              {temMaisConsultas && (
+                <Pressable onPress={() => router.push('/(tabs)/agendamento/agendamentoPage')} hitSlop={8}>
+                  <Text style={styles.verMais}>Ver mais...</Text>
+                </Pressable>
+              )}
+            </View>
+    
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>
+                Anotações
+              </Text>
+
+              <View style={styles.linhaData}>
+                <Pressable onPress={() => mudarDia(-1)} hitSlop={12}>
+                  <Text style={styles.seta}>‹</Text>
+                </Pressable>
+
+                <Text style={styles.textoData}>
+                  {ehHoje ? 'Hoje' : formatarDiaMes(dataAnotacao)}
+                </Text>
+
+                <Pressable onPress={() => mudarDia(1)}  disabled={ehHoje} hitSlop={12}>
+                  <Text style={[styles.seta, ehHoje && styles.setaDesabilitada]}>›</Text>
+                </Pressable>
+              </View>
+            
+
+              <TextInput
+                style={styles.campoAnotacao}
+                multiline
+                maxLength={1000}
+                placeholder="Digite suas anotações do dia aqui..."
+                placeholderTextColor="#9b8bc4"
+                value={texto}
+                editable={situacao !== 'carregando'}
+                onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({animated: true}), 150)}
+                onChangeText={(t) => {
+                  setTexto(t);
+                  setSituacao('salvando');
+                }}
+              />
+
+              <Text style={styles.situacaoSalvamento}>
+                {situacao === 'salvando' ? 'Salvando...' : situacao === 'salvo' ? ' ' : ''}
+              </Text>
+            </View> 
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </LinearGradient>    
   );
 }
