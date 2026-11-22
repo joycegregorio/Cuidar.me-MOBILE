@@ -78,6 +78,41 @@ export const filaRepository = {
         );
     },
 
+    async contarTodos(db: SQLiteDatabase): Promise<number> {
+        const row = await db.getFirstAsync<{ count: number }>(
+            'SELECT COUNT(*) AS count FROM fila_sincronizacao',
+        );
+        return row?.count ?? 0;
+    },
+
+    async listarComErro(db: SQLiteDatabase): Promise<ItemFila[]> {
+        const rows = await db.getAllAsync<FilaRow>(
+            'SELECT * FROM fila_sincronizacao WHERE erro IS NOT NULL ORDER BY id',
+        );
+        return rows.map(toFilaItem);
+    },
+
+    async tentarDeNovo(db: SQLiteDatabase, id: number): Promise<void> {
+        await db.runAsync('UPDATE fila_sincronizacao SET erro = NULL, tentativas = 0 WHERE id = ?', id);
+    },
+
+    async descartar(db: SQLiteDatabase, item: ItemFila): Promise<void> {
+        await db.withTransactionAsync(async () => {
+            const agendamentos = await db.getAllAsync<{ entidade_id: string }>(
+                `SELECT DISTINCT entidade_id FROM fila_sincronizacao
+                 WHERE entidade = 'atendimento' AND json_extract(payload, '$.pacienteId') = ?`,
+                item.entidadeId,
+            );
+            const ids = [item.entidadeId, ...agendamentos.map((a) => a.entidade_id)];
+            await db.runAsync(
+                `DELETE FROM fila_sincronizacao
+                 WHERE id >= ? AND entidade_id IN (SELECT value FROM json_each(?))`,
+                item.id,
+                JSON.stringify(ids),
+            );
+        });
+    },
+
     async contarPendentes(db: SQLiteDatabase): Promise<number> {
         const row = await db.getFirstAsync<{ count: number }>(
             'SELECT COUNT(*) AS count FROM fila_sincronizacao WHERE erro IS NULL',

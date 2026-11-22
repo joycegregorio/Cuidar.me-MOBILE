@@ -56,6 +56,20 @@ function montarRequisicao(item: ItemFila): Requisicao {
     }
 }
 
+type Ouvinte = () => void;
+const ouvintesFila = new Set<Ouvinte>();
+
+export function aoMudarFila(ouvinte: Ouvinte): () => void {
+    ouvintesFila.add(ouvinte);
+    return () => {
+        ouvintesFila.delete(ouvinte);
+    };
+}
+
+export function avisarMudancaFila(): void {
+    ouvintesFila.forEach((ouvinte) => ouvinte());
+}
+
 let sincronizando = false;
 let pedirDeNovo = false;
 
@@ -87,6 +101,7 @@ export async function sincronizarFila(db: SQLiteDatabase): Promise<void> {
         }
     } finally {
         sincronizando = false;
+        avisarMudancaFila();
     }
 
     if(pedirDeNovo) {
@@ -97,6 +112,7 @@ export async function sincronizarFila(db: SQLiteDatabase): Promise<void> {
 let temporizador: ReturnType<typeof setTimeout> | null = null;
 
 export function agendarSincronizacao(db: SQLiteDatabase): void {
+    avisarMudancaFila();
     if(temporizador) clearTimeout(temporizador);
     temporizador = setTimeout(() => {
         temporizador = null;
