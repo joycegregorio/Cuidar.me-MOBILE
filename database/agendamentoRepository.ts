@@ -4,6 +4,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import * as Crypto from 'expo-crypto';
 import { hojeISO } from '@/utils/data';
 import { filaRepository } from '@/database/filaRepository';
+import { agendarSincronizacao } from '@/services/sincronizacao';
 import { agendamentoParaApi } from '@/services/mapeadoresApi';
 
 interface AgendamentoRow {
@@ -55,6 +56,7 @@ export async function inserirAgendamento(db: SQLiteDatabase, dados: AgendamentoF
             ...agendamentoParaApi({ id, ...dados }),
         });
     });
+    agendarSincronizacao(db);
     return id;
 }
 
@@ -94,6 +96,7 @@ export async function atualizarStatusAgendamento(db: SQLiteDatabase, agendamento
         );
         await enfileirarAtualizacao(db, agendamentoId);
     });
+    agendarSincronizacao(db);
 }
 
 export async function buscarAgendamentoPorId(db: SQLiteDatabase, agendamentoId: string): Promise<AgendamentoComPaciente | null> {
@@ -116,5 +119,6 @@ export async function atualizarAgendamento(db: SQLiteDatabase, agendamentoId: st
         );
         await enfileirarAtualizacao(db, agendamentoId);
     });
+    agendarSincronizacao(db);
 }
 

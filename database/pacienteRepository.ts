@@ -3,6 +3,7 @@ import type { Paciente, PacienteForm } from '@/types/paciente';
 import * as Crypto from 'expo-crypto';
 
 import { filaRepository } from '@/database/filaRepository';
+import { agendarSincronizacao } from '@/services/sincronizacao';
 import { pacienteParaApi } from '@/services/mapeadoresApi';
 
 interface PacienteRow {
@@ -141,6 +142,7 @@ export const pacienteRepository = {
         ...pacienteParaApi(id, dados),
       });
     });
+    agendarSincronizacao(db);
     return id;
   },
 
@@ -150,6 +152,7 @@ export const pacienteRepository = {
       await db.runAsync(`UPDATE paciente SET ${sets} WHERE id = ?`, ...toParams(dados), id);
       await filaRepository.enfileirar(db, 'paciente', 'ATUALIZAR', id, pacienteParaApi(id, dados));
     });
+    agendarSincronizacao(db);
   },
 
   async remover(db: SQLiteDatabase, id: string): Promise<void> {
@@ -157,5 +160,6 @@ export const pacienteRepository = {
       await db.runAsync('DELETE FROM paciente WHERE id = ?', id);
       await filaRepository.enfileirar(db, 'paciente', 'EXCLUIR', id);
     });
+    agendarSincronizacao(db);
   },
 };
