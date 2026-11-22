@@ -2,6 +2,7 @@ import type { StatusAgendamento } from '@/types/agendamento';
 import { Agendamento, AgendamentoComPaciente, AgendamentoForm } from '@/types/agendamento';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import * as Crypto from 'expo-crypto';
+import { hojeISO } from '@/utils/data';
 
 interface AgendamentoRow {
     id: string;
@@ -16,13 +17,6 @@ interface AgendamentoRow {
 type AgendamentoRowWithPaciente = AgendamentoRow & {
     paciente_id: string;
     paciente_nome: string;
-};
-
-const hojeISO = () => {
-  const d = new Date();
-  const mes = String(d.getMonth() + 1).padStart(2, '0');
-  const dia = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}-${mes}-${dia}`;
 };
 
 function toAgendamento (row: AgendamentoRow): Agendamento {

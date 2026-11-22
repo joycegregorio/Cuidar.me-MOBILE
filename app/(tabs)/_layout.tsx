@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
-import { ActivityIndicator, ColorValue, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '@/contexts/auth-context';
 import Header from '../../components/ui/header';
 
@@ -13,18 +13,16 @@ const aba = (
 ) => ({
   title,
   tabBarIcon: ({
-    color,
     size,
     focused,
   }: {
-    color: ColorValue;
     size: number;
     focused: boolean;
   }) => (
     <Ionicons
       name={focused ? iconFocado : icon}
       size={size}
-      color={color}
+      color={focused? '#5b00d2' : '#9a8bb5'}
     />
   ),
 });

@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/contexts/auth-context';
@@ -14,6 +15,12 @@ export default function Header() {
   const insets = useSafeAreaInsets();
   const { sair } = useAuth();
   const db = useSQLiteContext();
+  const [menuAberto, setMenuAberto] = useState(false);
+
+  const abrir = (rota: '/sobrePage' | '/contatoPage') => {
+    setMenuAberto(false);
+    router.push(rota);
+  }
 
   const handleLogout = async () => {
     const pendentes = await filaRepository.contarPendentes(db);
@@ -49,9 +56,30 @@ export default function Header() {
         accessibilityLabel="Logo Cuidar.me"
       />
 
+      <Modal
+        visible={menuAberto}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuAberto(false)}
+      > 
+        <Pressable style={styles.fundoMenu} onPress={() => setMenuAberto(false)}>
+          <View style={[styles.menu, {top: insets.top + 56}]}>
+            <Pressable style={styles.itemMenu} onPress={() => abrir('/sobrePage')}>
+              <Ionicons name='information-circle-outline' size={20} color="#5b00d2"/>
+              <Text style={styles.textoMenu}>Sobre</Text>
+            </Pressable>
+
+            <Pressable style={styles.itemMenu} onPress={() => abrir('/contatoPage')}>
+              <Ionicons name="mail-outline" size={20} color="#5b00d2" />
+              <Text style={styles.textoMenu}>Contato</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+
       <View style={styles.acoes}>
-        <Pressable onPress={() => router.push('/')} hitSlop={8} accessibilityLabel="Perfil">
-          <Ionicons name="people-outline" size={24} color="#5b00d2" />
+        <Pressable onPress={() => setMenuAberto(true)} hitSlop={8} accessibilityLabel='Mais informações'>
+          <Ionicons name="information-circle-outline" size={24} color="#5b00d2" />
         </Pressable>
 
         <Pressable onPress={handleLogout} hitSlop={8} accessibilityLabel="Sair">
@@ -83,5 +111,33 @@ const styles = StyleSheet.create({
   acoes: { flexDirection: 'row', 
     alignItems: 'center', 
     gap: 20,
+  },
+  fundoMenu: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+},
+  menu: {
+    position: 'absolute',
+    right: 16,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    paddingVertical: 4,
+    minWidth: 160,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  itemMenu: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  textoMenu: {
+    fontSize: 16,
+    color: '#5b00d2',
   },
 });

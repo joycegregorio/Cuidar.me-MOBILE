@@ -1,6 +1,6 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { AgendamentoComPaciente } from '@/types/agendamento';
@@ -25,24 +25,17 @@ const formatarDataISO = (d: Date) =>
   `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 export default function RemarcarAgendamentoCard({ consulta, onSalvar, onCancelar }: Props) {
-  const [data, setData] = useState<Date>(new Date());
-  const [mostrarData, setMostrarData] = useState(false);
-  const [horario, setHorario] = useState('');
-  const [tipo, setTipo] = useState<Tipo>('presencial');
-  const [localidade, setLocalidade] = useState('');
+    const online = consulta?.localidade === 'Online';
 
-  useEffect(() => {
-    if (!consulta) return;
-
-    const [ano, mes, dia] = consulta.data.split('-').map(Number);
-    const online = consulta.localidade === 'Online';
-
-    setData(new Date(ano, mes - 1, dia));
-    setHorario(consulta.horario);
-    setTipo(online ? 'online' : 'presencial');
-    setLocalidade(online ? '' : consulta.localidade);
-    setMostrarData(false);
-  }, [consulta]);
+    const [data, setData] = useState<Date>(() => {
+      if (!consulta) return new Date();
+      const [ano, mes, dia] = consulta.data.split('-').map(Number);
+      return new Date(ano, mes - 1, dia);
+    });
+    const [mostrarData, setMostrarData] = useState(false);
+    const [horario, setHorario] = useState(consulta?.horario ?? '');
+    const [tipo, setTipo] = useState<Tipo>(online ? 'online' : 'presencial');
+    const [localidade, setLocalidade] = useState(online ? '' : consulta?.localidade ?? '');
 
   const handleSalvar = () => {
     if (!consulta) return;
