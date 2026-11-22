@@ -5,6 +5,8 @@ import { AppState } from 'react-native';
 
 import { sincronizarFila } from '@/services/sincronizacao';
 
+const INTERVALO_TENTATIVA_MS = 30_000;
+
 export function SyncContextProvider({ children }: { children: ReactNode }) {
     const db = useSQLiteContext();
 
@@ -23,9 +25,12 @@ export function SyncContextProvider({ children }: { children: ReactNode }) {
             }
     });
 
+    const intervalo = setInterval(() => sincronizarFila(db), INTERVALO_TENTATIVA_MS);
+
     return () => {
         cancelarRede();
         assinaturaApp.remove();
+        clearInterval(intervalo);
     };
 }, [db]);
 

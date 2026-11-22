@@ -55,10 +55,15 @@ function montarRequisicao(item: ItemFila): Requisicao {
 }
 
 let sincronizando = false;
+let pedirDeNovo = false;
 
 export async function sincronizarFila(db: SQLiteDatabase): Promise<void> {
-    if(sincronizando) return;
+    if(sincronizando) {
+        pedirDeNovo = true;
+        return;
+    }
     sincronizando = true;
+    pedirDeNovo = false;
 
     try {
         while(true){
@@ -81,5 +86,18 @@ export async function sincronizarFila(db: SQLiteDatabase): Promise<void> {
     } finally {
         sincronizando = false;
     }
-    
+
+    if(pedirDeNovo) {
+        await sincronizarFila(db);
+    }
+}
+
+let temporizador: ReturnType<typeof setTimeout> | null = null;
+
+export function agendarSincronizacao(db: SQLiteDatabase): void {
+    if(temporizador) clearTimeout(temporizador);
+    temporizador = setTimeout(() => {
+        temporizador = null;
+        sincronizarFila(db);
+    }, 1000);
 }    
