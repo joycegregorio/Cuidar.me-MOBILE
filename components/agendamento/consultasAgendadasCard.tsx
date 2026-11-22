@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
+
+import { useAoBaixarDados } from '@/hooks/use-ao-baixar-dados';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -53,6 +55,8 @@ export default function ConsultasAgendadasCard() {
       console.error('Erro ao buscar agendamentos:', error);
     }
   }, [db]);
+
+  useAoBaixarDados(carregar);
 
   useFocusEffect(
     useCallback(() => {

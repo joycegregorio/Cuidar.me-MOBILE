@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/auth-context';
+import { useAoBaixarDados } from '@/hooks/use-ao-baixar-dados';
 import { listarAgendamentosDoDia } from '@/database/agendamentoRepository';
 import { anotacaoRepository } from '@/database/anotacaoRepository';
 import { AgendamentoComPaciente } from '@/types/agendamento';
@@ -24,6 +25,10 @@ export default function HomeScreen() {
 
   const alturaCabecalho = useHeaderHeight();
   const scrollRef = useRef<ScrollViewInstance>(null);
+
+  useAoBaixarDados(() => {
+    listarAgendamentosDoDia(db).then(setConsultas);
+  });
 
   useFocusEffect(
     useCallback(() => {

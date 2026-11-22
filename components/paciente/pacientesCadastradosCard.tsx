@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
+
+import { useAoBaixarDados } from '@/hooks/use-ao-baixar-dados';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -134,6 +136,8 @@ export default function PacientesCadastradosCard({ onEditar }: Props) {
       setCarregando(false);
     }
   }, [db, busca]);
+
+  useAoBaixarDados(carregar);
 
   useFocusEffect(
     useCallback(() => {
