@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '@/contexts/auth-context';
+import AvisoSincronizacao from '@/components/ui/avisoSincronizacao';
 import Header from '../../components/ui/header';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -43,7 +44,12 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        header: () => <Header />,
+        header: () => (
+          <View>
+            <Header />
+            <AvisoSincronizacao />
+          </View>
+        ),
         tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: '#5b00d2',
         tabBarInactiveTintColor: '#9a8bb5',

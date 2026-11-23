@@ -23,7 +23,7 @@ export default function Header() {
   }
 
   const handleLogout = async () => {
-    const pendentes = await filaRepository.contarPendentes(db);
+    const pendentes = await filaRepository.contarTodos(db);
     const mensagem = pendentes > 0
       ? `Há ${pendentes} ${pendentes === 1 ? 'alteração que ainda não foi enviada' : 'alterações que ainda não foram enviadas'} ao servidor. `
         + 'Se sair agora, elas serão perdidas. Deseja sair mesmo assim?'
