@@ -62,7 +62,7 @@ O serviço de sincronização ([`services/sincronizacao.ts`](services/sincroniza
 - **1 segundo depois** de qualquer alteração (se houver internet, o envio é quase imediato)
 - ao **abrir o app** e quando o app **volta do segundo plano**
 - quando a **conexão volta** (`@react-native-community/netinfo`)
-- a cada **30 segundos**, enquanto houver itens pendentes
+- a cada **30 segundos**, tenta de novo enviar o que estiver na fila
 
 O que acontece com cada resposta do servidor:
 
@@ -71,6 +71,8 @@ O que acontece com cada resposta do servidor:
 | **2xx** (sucesso) | Remove o item da fila e segue para o próximo |
 | **Sem resposta** (sem internet ou tempo esgotado) ou **5xx** | Guarda o item, soma uma tentativa e **para**. Os próximos também falhariam, então tenta de novo mais tarde |
 | **4xx** (por exemplo, 409 de CPF duplicado ou 404) | Marca o item com o erro e **segue para o próximo**. Reenviar não resolveria, então o usuário é avisado |
+
+Os itens que dependem de um item com erro **ficam esperando**: outras alterações do mesmo registro e, se for um paciente, os agendamentos dele. Eles só são enviados depois que o usuário toca em **tentar de novo** e o envio dá certo. Se o usuário tocar em **descartar**, essas alterações dependentes também saem da fila.
 
 Reenviar não duplica dados: a API devolve o registro existente quando recebe um cadastro com um ID que ela já conhece, e excluir algo que já não existe não é tratado como erro.
 
@@ -207,15 +209,20 @@ A separação segue o fluxo **tela → repositório → banco**, e **fila → se
 
 **Pré-requisitos:** Node.js (versão LTS), a [API Cuidar.me](https://github.com/jhenniferknc/cuidarme-springboot) rodando (veja o README dela) e um emulador Android ou um celular com o app **Expo Go** compatível com a SDK 58.
 
-1. Instale as dependências:
+1. Clone o repositório e instale as dependências:
    ```bash
+   git clone https://github.com/joycegregorio/Cuidar.me-MOBILE.git
+   cd Cuidar.me-MOBILE
    npm install
    ```
-2. Copie o `.env.example` para `.env.local` e informe o endereço da API:
+2. Copie o `.env.example` para `.env.local` (ou `.env`, o Expo lê os dois e nenhum vai para o repositório) e informe o endereço da API:
+   ```bash
+   cp .env.example .env.local
+   ```
    ```
    EXPO_PUBLIC_API_URL=http://192.168.x.x:8082/cuidarme/api
    ```
-   Para testar no celular com a API rodando no computador, use o **IP do computador na rede** (`ipconfig` no Windows, campo "Endereço IPv4" do Wi-Fi), e não `localhost`. Se a API estiver publicada, use o endereço dela.
+   Para testar no celular com a API rodando no computador, use o **IP do computador na rede**, e não `localhost`: no celular, `localhost` é o próprio celular. Para descobrir o IP, use `ipconfig` no Windows (campo "Endereço IPv4" do Wi-Fi), `hostname -I` no Linux ou `ipconfig getifaddr en0` no macOS. No emulador Android, `10.0.2.2` aponta para o computador. Se a API estiver publicada, use o endereço dela.
 3. Inicie o app:
    ```bash
    npx expo start --clear
@@ -225,7 +232,9 @@ A separação segue o fluxo **tela → repositório → banco**, e **fila → se
 
 Na primeira vez, é preciso **Cadastrar** a conta do profissional. A navegação por web (`expo start --web`) não é suportada, porque o `expo-secure-store` não existe nesse ambiente.
 
-**Se o app mostrar "sem conexão" com a API ligada:** confira se o IP do `.env.local` ainda é o do computador (ele muda ao trocar de rede) e reinicie com `npx expo start --clear`. Se o celular não alcançar a porta 8082, libere-a no firewall do Windows.
+**Se o app mostrar "sem conexão" com a API ligada:** confira se o IP do `.env.local` ainda é o do computador (ele muda ao trocar de rede) e reinicie com `npx expo start --clear`. Se o celular não alcançar a porta 8082, libere-a no firewall do computador.
+
+**Se aparecer "A variável de ambiente EXPO_PUBLIC_API_URL não está definida":** o arquivo `.env.local` (ou `.env`) não foi criado. Volte ao passo 2.
 
 ## Prints do app
 
