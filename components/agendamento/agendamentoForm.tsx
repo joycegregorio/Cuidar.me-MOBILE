@@ -1,4 +1,5 @@
 import { inserirAgendamento } from '@/database/agendamentoRepository';
+import { useAoBaixarDados } from '@/hooks/use-ao-baixar-dados';
 import { pacienteRepository } from '@/database/pacienteRepository';
 import type { Paciente } from '@/types/paciente';
 import { Ionicons } from '@expo/vector-icons';
@@ -57,6 +58,10 @@ export default function AgendamentoForm({ onSalvo }: Props) {
   const [localidade, setLocalidade] = useState('');
 
   const alturaHeader = insets.top + 56;
+
+  useAoBaixarDados(() => {
+    pacienteRepository.listar(db).then(setPacientes).catch(() => {});
+  });
 
   useFocusEffect(
     useCallback(() => {

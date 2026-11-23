@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { limparDadosLocais } from '@/database/dadosLocais';
 import { autenticarPsicologo, cadastrarPsicologo } from '@/services/authService';
 import { limparSessao, lerSessao, salvarSessao } from '@/services/sessao';
+import { sincronizarTudo } from '@/services/sincronizacao';
 import type { LoginForm, Psicologo, PsicologoCadastroForm } from '@/types/psicologo';
 
 interface AuthContextValue {
@@ -48,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const logado = await autenticarPsicologo(form);
     await salvarSessao(logado);
     setPsicologo(logado);
+    sincronizarTudo(db);
   };
 
   const sair = async () => {

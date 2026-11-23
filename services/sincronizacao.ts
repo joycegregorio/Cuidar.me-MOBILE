@@ -2,6 +2,8 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { filaRepository } from '@/database/filaRepository';
 import { ApiError, requisicaoApi } from '@/services/api';
+import { baixarDados } from '@/services/baixarDados';
+import { lerSessao } from '@/services/sessao';
 import type { ItemFila } from '@/types/fila';
 
 interface Requisicao {
@@ -100,4 +102,21 @@ export function agendarSincronizacao(db: SQLiteDatabase): void {
         temporizador = null;
         sincronizarFila(db);
     }, 1000);
-}    
+}
+
+let baixando = false;
+
+export async function sincronizarTudo(db: SQLiteDatabase): Promise<void> {
+    await sincronizarFila(db);
+
+    if(baixando) return;
+    baixando = true;
+    try {
+        const psicologo = await lerSessao();
+        if(psicologo) await baixarDados(db, psicologo.id);
+    } catch (error) {
+        console.warn('Não foi possível baixar os dados do servidor:', error);
+    } finally {
+        baixando = false;
+    }
+}
