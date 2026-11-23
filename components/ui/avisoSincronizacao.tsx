@@ -17,7 +17,6 @@ function dataHoraCurta(dataHora?: string): string {
   return `${dia}/${mes} às ${hora?.slice(0, 5) ?? ''}`;
 }
 
-// Texto que o usuário entende para cada item da fila
 function descrever(item: ItemFila): string {
   const dados = item.payload ? JSON.parse(item.payload) : {};
   switch (`${item.entidade}:${item.operacao}`) {
