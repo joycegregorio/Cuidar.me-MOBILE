@@ -1,5 +1,5 @@
+import FundoGradiente from '@/components/ui/fundoGradiente';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 const FUNCIONALIDADES = [
@@ -12,12 +12,7 @@ const FUNCIONALIDADES = [
 
 export default function Sobre() {
   return (
-    <LinearGradient
-      colors={['#A259FF', '#F76FFF', '#FF8A00']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
+    <FundoGradiente style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.conteudo}
         showsVerticalScrollIndicator={false}
@@ -53,7 +48,7 @@ export default function Sobre() {
           </View>
         </View>
       </ScrollView>
-    </LinearGradient>
+    </FundoGradiente>
   );
 }
 

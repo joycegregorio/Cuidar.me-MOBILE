@@ -1,27 +1,28 @@
 import AgendamentoForm from '@/components/agendamento/agendamentoForm';
-import ButtonAgenda, {
-  type AbaAgenda,
-} from '@/components/agendamento/ButtonAgenda';
+import AbasSegmentadas, {type Aba} from '@/components/ui/abasSegmentadas';
 import ConsultasAgendadasCard from '@/components/agendamento/consultasAgendadasCard';
-import { LinearGradient } from 'expo-linear-gradient';
+import FundoGradiente from '@/components/ui/fundoGradiente';
+import {  } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { StyleSheet } from 'react-native';
+
+type AbaAgenda = 'novo' | 'consultas';
 
 export default function Agendamentos() {
     const [abaAtiva, setAbaAtiva] = useState<AbaAgenda>('novo');
 
+    const ABAS: Aba<AbaAgenda>[] = [
+      { valor: 'novo', rotulo: 'Novo Agendamento', icone: 'calendar-outline'},
+      { valor: 'consultas', rotulo: 'Consultas Agendadas', icone: 'clipboard-outline'},
+    ];
   return (
-    <LinearGradient
-      colors={['#1f1f8b', '#A259FF', '#F76FFF', '#FF8A00']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
+    <FundoGradiente style={styles.container}
     >
-        <ButtonAgenda abaAtiva={abaAtiva} onMudarAba={setAbaAtiva} />
+        <AbasSegmentadas abas={ABAS} abaAtiva={abaAtiva} onMudarAba={setAbaAtiva} />
 
         {abaAtiva === 'novo' && <AgendamentoForm onSalvo={() => setAbaAtiva('consultas')} />}
         {abaAtiva === 'consultas' && <ConsultasAgendadasCard />}
-    </LinearGradient>
+    </FundoGradiente>
   );
 }
 

@@ -13,6 +13,7 @@ import {
   listarAgendamentos,
 } from '@/database/agendamentoRepository';
 import { STATUS_TEXTO, type AgendamentoComPaciente, type StatusAgendamento } from '@/types/agendamento';
+import EstadoVazio from '../ui/estadoVazio';
 
 const STATUS_LABELS: Record<StatusAgendamento, { fundo: string; texto: string }> = {
   AGENDADO: { fundo: '#FEF3C7', texto: '#92400E' },
@@ -202,11 +203,10 @@ export default function ConsultasAgendadasCard() {
           </View>
         }
         ListEmptyComponent={
-          <Text style={styles.vazio}>
-            {filtrarStatus === 'TODOS'
-              ? 'Nenhuma consulta agendada.'
-              : 'Nenhuma consulta com este status.'}
-          </Text>
+          <EstadoVazio
+            icone="calendar-outline"
+            mensagem={filtrarStatus === 'TODOS' ? 'Nenhuma consulta agendada,' : 'Nenhuma consulta com este status'}
+          />
         }
       />
 
@@ -239,11 +239,6 @@ const styles = StyleSheet.create({
     color: '#a755f7', 
     fontSize: 20, 
     fontWeight: 'bold', 
-  },
-  vazio: { 
-    textAlign: 'center', 
-    color: '#666', 
-    marginTop: 24, 
   },
   filtrosContainer: {
   gap: 8,

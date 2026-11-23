@@ -4,10 +4,9 @@ import { router } from 'expo-router';
 import { ComponentType, ReactElement } from 'react';
 import { Image, Pressable, StyleSheet, Text, View, ViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GRADIENTE } from '@/constants/cores';
 
 const logonome = require('../../assets/images/logonome.png');
-
-const CORES_GRADIENTE = ['#1f1f8b', '#A259FF', '#F76FFF', '#FF8A00'] as const;
 
 const MaskedView = MaskedViewOriginal as unknown as ComponentType<ViewProps & { maskElement: ReactElement}>;
 export default function HeaderAutentication() {
@@ -26,7 +25,7 @@ export default function HeaderAutentication() {
         <Pressable style={styles.botao} onPress={() => router.push('/sobrePage')}>
           <MaskedView maskElement={<Text style={styles.botaoTexto}>Sobre</Text>}>
             <LinearGradient
-              colors={CORES_GRADIENTE}
+              colors={GRADIENTE}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
             >
@@ -38,7 +37,7 @@ export default function HeaderAutentication() {
         <Pressable style={styles.botao} onPress={() => router.push('/contatoPage')}>
           <MaskedView maskElement={<Text style={styles.botaoTexto}>Contato</Text>}>
             <LinearGradient
-              colors={CORES_GRADIENTE}
+              colors={GRADIENTE}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
             >

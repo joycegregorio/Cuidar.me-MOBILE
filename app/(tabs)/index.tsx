@@ -4,12 +4,13 @@ import { listarAgendamentosDoDia } from '@/database/agendamentoRepository';
 import { anotacaoRepository } from '@/database/anotacaoRepository';
 import { AgendamentoComPaciente } from '@/types/agendamento';
 import { formatarDiaMes, hojeISO, somarDias } from '@/utils/data';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
 import { useHeaderHeight } from 'expo-router/react-navigation';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, KeyboardAvoidingView, ScrollViewInstance } from 'react-native';
+import FundoGradiente from '@/components/ui/fundoGradiente';
+import EstadoVazio from '@/components/ui/estadoVazio';
 
 const MAX_VISIVEIS = 3;
 
@@ -79,13 +80,7 @@ export default function HomeScreen() {
 
   return (
 
-    <LinearGradient
-      colors={['#1f1f8b', '#A259FF', '#F76FFF', '#FF8A00']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
-
+    <FundoGradiente style={styles.container}>
       <KeyboardAvoidingView
         behavior='padding'
         keyboardVerticalOffset={alturaCabecalho}
@@ -111,9 +106,7 @@ export default function HomeScreen() {
                 Consultas do dia
               </Text>
               {consultas.length === 0 && (
-                <Text style={styles.cardSubtitle}>
-                  Nenhuma consulta para hoje.
-                </Text>
+                <EstadoVazio icone="calendar-clear-outline" mensagem="Nenhuma consulta para hoje." />
               )}
 
               {consultasVisiveis.map((c) => (
@@ -172,7 +165,7 @@ export default function HomeScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </LinearGradient>    
+    </FundoGradiente>    
   );
 }
 
