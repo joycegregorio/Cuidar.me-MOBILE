@@ -20,6 +20,7 @@ import {
 import { pacienteRepository } from '@/database/pacienteRepository';
 import type { Paciente, Endereco } from '@/types/paciente';
 import { calcularIdade, formatarDataBR, isoParaDate } from '@/utils/validacaoPaciente';
+import EstadoVazio from '../ui/estadoVazio';
 
 type Props = {
   onEditar: (paciente: Paciente) => void;
@@ -241,13 +242,16 @@ export default function PacientesCadastradosCard({ onEditar }: Props) {
           </View>
         }
         ListEmptyComponent={
-          <Text style={erro ? styles.erro : styles.vazio}>
-            {erro
-              ? 'Não foi possível carregar os pacientes.'
-              : busca.trim()
-                ? 'Nenhum paciente encontrado para essa busca.'
-                : 'Nenhum paciente cadastrado.'}
-          </Text>
+          <EstadoVazio
+            icone={erro ? 'alert-circle-outline' : 'people-outline'}
+            mensagem={
+              erro
+                ? 'Não foi possível carregar os pacientes.'
+                : busca.trim()
+                  ? 'Nenhum paciente encontrado para essa busca.'
+                  : 'Nenhum paciente cadastrado.'
+            }          
+          />
         }
       />
       <DetalhesPacienteModal paciente={detalhes} onFechar={() => setDetalhes(null)} />
@@ -283,8 +287,6 @@ const styles = StyleSheet.create({
   },
   inputBuscaText: { flex: 1 },
   contador: { color: '#666' },
-  vazio: { textAlign: 'center', color: '#666', marginTop: 24 },
-  erro: { textAlign: 'center', color: '#dc2626', marginTop: 24 },
 
   card: {
     backgroundColor: '#fff',

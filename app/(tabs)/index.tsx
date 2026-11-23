@@ -10,6 +10,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, KeyboardAvoidingView, ScrollViewInstance } from 'react-native';
 import FundoGradiente from '@/components/ui/fundoGradiente';
+import EstadoVazio from '@/components/ui/estadoVazio';
 
 const MAX_VISIVEIS = 3;
 
@@ -105,9 +106,7 @@ export default function HomeScreen() {
                 Consultas do dia
               </Text>
               {consultas.length === 0 && (
-                <Text style={styles.cardSubtitle}>
-                  Nenhuma consulta para hoje.
-                </Text>
+                <EstadoVazio icone="calendar-clear-outline" mensagem="Nenhuma consulta para hoje." />
               )}
 
               {consultasVisiveis.map((c) => (
