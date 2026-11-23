@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -18,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/auth-context';
 import { AuthError } from '@/services/authService';
 import { type ErrosCadastro, validarCadastro } from '@/utils/validacaoPsicologo';
+import FundoGradiente from '@/components/ui/fundoGradiente';
 
 type Erros = ErrosCadastro & { confirmarSenha?: string };
 
@@ -67,12 +67,7 @@ export default function Cadastro(){
     };
 
     return (
-        <LinearGradient
-            colors={['#1f1f8b', '#A259FF', '#F76FFF', '#FF8A00']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.container}
-        >
+        <FundoGradiente style={styles.container}>
             <KeyboardAvoidingView
                 style={styles.flex}
                 behavior="padding"
@@ -165,8 +160,7 @@ export default function Cadastro(){
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
-        </LinearGradient>
-
+        </FundoGradiente>
     );
 }
 

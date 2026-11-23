@@ -1,13 +1,14 @@
-import ButtonPaciente, { type AbaPaciente } from '@/components/paciente/ButtonPaciente';
 import EditarPacienteCard from '@/components/paciente/editarPacienteCard';
 import PacienteForm from '@/components/paciente/pacienteForm';
 import PacientesCadastradosCard from '@/components/paciente/pacientesCadastradosCard';
+import AbasSegmentadas, { Aba } from '@/components/ui/abasSegmentadas';
+import FundoGradiente from '@/components/ui/fundoGradiente';
 import type { Paciente } from '@/types/paciente';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+type AbaPaciente = 'novo' | 'cadastrados'
 export default function Pacientes() {
   const insets = useSafeAreaInsets();
   const [abaAtiva, setAbaAtiva] = useState<AbaPaciente>('cadastrados');
@@ -26,19 +27,19 @@ export default function Pacientes() {
     setEditando(null);
   };
 
+  const ABAS:  Aba<AbaPaciente>[] = [
+    { valor: 'novo', rotulo: 'Novo Paciente', icone: 'person-add-outline'},
+    { valor: 'cadastrados', rotulo: 'Pacientes Cadastrados', icone: 'people-outline'},
+  ];
+
   return (
-    <LinearGradient
-      colors={['#1f1f8b', '#A259FF', '#F76FFF', '#FF8A00']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
+    <FundoGradiente style={styles.container}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior="padding"
         keyboardVerticalOffset={offSetTeclado}
       >
-        <ButtonPaciente abaAtiva={abaAtiva} onMudarAba={setAbaAtiva} />
+        <AbasSegmentadas abas={ABAS} abaAtiva={abaAtiva} onMudarAba={setAbaAtiva} />
 
         {abaAtiva === 'novo' && (
           <ScrollView 
@@ -62,7 +63,7 @@ export default function Pacientes() {
           onCancelar={() => setEditando(null)}
         />
       </KeyboardAvoidingView>  
-    </LinearGradient>
+    </FundoGradiente>
   );
 }
 
