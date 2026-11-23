@@ -9,8 +9,8 @@ const CONTATOS = [
   },
   {
     nome: 'Joyce Gregório da Silva',
-    email: 'joycegregorio@gmail.com',
-    telefone: '(83) 98765-4321',
+    email: 'joycegregorio734@gmail.com',
+    telefone: '(83) 98838-2958',
   },
 ];
 
